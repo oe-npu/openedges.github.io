@@ -1,306 +1,265 @@
-/* jshint esversion: 6 */
-/* eslint "indent": [ "error", 4, { "SwitchCase": 1 } ] */
 
-var numpy = numpy || {};
+// Experimental
 
-numpy.Array = class {
+import * as python from './python.js';
 
-    constructor(buffer) {
-        if (buffer) {
-            const reader = new numpy.Reader(buffer);
-            const signature = [ 0x93, 0x4E, 0x55, 0x4D, 0x50, 0x59 ];
-            if (!reader.bytes(6).every((v, i) => v == signature[i])) {
-                throw new numpy.Error('Invalid signature.');
-            }
-            const major = reader.byte();
-            const minor = reader.byte();
-            if (major !== 1 && minor !== 0) {
-                throw new numpy.Error("Invalid version '" + [ major, minor ].join('.') + "'.");
-            }
-            const header = JSON.parse(reader.string().trim().replace(/'/g, '"').replace("False", "false").replace("(", "[").replace(/,*\),*/g, "]"));
-            if (header.fortran_order) {
-                throw new numpy.Error("Fortran order is not supported.'");
-            }
-            if (!header.descr || header.descr.length < 2) {
-                throw new numpy.Error("Missing property 'descr'.");
-            }
-            if (!header.shape) {
-                throw new numpy.Error("Missing property 'shape'.");
-            }
-            this._shape = header.shape;
-            this._byteOrder = header.descr[0];
-            switch (this._byteOrder) {
-                case '|': {
-                    this._dataType = header.descr.substring(1);
-                    this._data = reader.bytes(reader.size - reader.position);
-                    break;
+const numpy = {};
+
+numpy.ModelFactory = class {
+
+    async match(context) {
+        const stream = context.stream;
+        const signature = [0x93, 0x4E, 0x55, 0x4D, 0x50, 0x59];
+        if (stream && signature.length <= stream.length && stream.peek(signature.length).every((value, index) => value === signature[index])) {
+            return context.set('npy');
+        }
+        const entries = await context.peek('npz');
+        if (entries && entries.size > 0) {
+            return context.set('npz', entries);
+        }
+        return null;
+    }
+
+    async open(context) {
+        let format = '';
+        const graphs = [];
+        switch (context.type) {
+            case 'npy': {
+                format = 'NumPy Array';
+                const unresolved = new Set();
+                const execution = new python.Execution();
+                execution.on('resolve', (_, name) => unresolved.add(name));
+                const stream = context.stream;
+                const bytes = execution.invoke('io.BytesIO', [stream]);
+                const array = execution.invoke('numpy.load', [bytes]);
+                if (unresolved.size > 0) {
+                    const name = unresolved.values().next().value;
+                    throw new numpy.Error(`Unknown type name '${name}'.`);
                 }
-                case '>':
-                case '<': {
-                    if (header.descr.length !== 3) {
-                        throw new numpy.Error("Unsupported data type '" + header.descr + "'.");
-                    }
-                    this._dataType = header.descr.substring(1);
-                    let size = parseInt(header.descr[2]);
-                    for (let dimension of this._shape) {
-                        size *= dimension;
-                    }
-                    this._data = reader.bytes(size);
-                    break;
-                }
-                default:
-                    throw new numpy.Error("Unsupported data type '" + header.descr + "'.");
-            }
-        }
-    }
-
-    get data() {
-        return this._data;
-    }
-
-    set data(value) {
-        this._data = value;
-    }
-
-    get dataType() {
-        return this._dataType;
-    }
-
-    set dataType(value) {
-        this._dataType = value;
-    }
-
-    get shape() {
-        return this._shape;
-    }
-
-    set shape(value) {
-        this._shape = value;
-    }
-
-    get byteOrder() {
-        return this._byteOrder;
-    }
-
-    set byteOrder(value) {
-        this._byteOrder = value;
-    }
-
-    toBuffer() {
-
-        const writer = new numpy.Writer();
-
-        writer.bytes([ 0x93, 0x4E, 0x55, 0x4D, 0x50, 0x59 ]); // '\\x93NUMPY'
-        writer.byte(1); // major
-        writer.byte(0); // minor
-
-        let context = {
-            itemSize: 1,
-            position: 0,
-            dataType: this._dataType,
-            byteOrder: this._byteOrder || '<',
-            shape: this._shape,
-            descr: '',
-        }
-
-        if (context.byteOrder !== '<' && context.byteOrder !== '>') {
-            throw new numpy.Error("Unknown byte order '" + this._byteOrder + "'.");
-        }
-        if (context.dataType.length !== 2 || (context.dataType[0] !== 'f' && context.dataType[0] !== 'i' && context.dataType[0] !== 'u')) {
-            throw new numpy.Error("Unsupported data type '" + this._dataType + "'.");
-        }
-
-        context.itemSize = parseInt(context.dataType[1], 10);
-
-        let shape = '';
-        switch (this._shape.length) {
-            case 0:
-                throw new numpy.Error('Invalid shape.');
-            case 1:
-                shape = '(' + this._shape[0].toString() + ',)';
+                const layer = { type: 'numpy.ndarray', parameters: [{ name: 'value', tensor: { name: '', array } }] };
+                graphs.push({ layers: [layer] });
                 break;
-            default:
-                shape = '(' + this._shape.map((dimension) => dimension.toString()).join(', ') + ')';
-                break;
-        }
-
-        let properties = [
-            "'descr': '" + context.byteOrder + context.dataType + "'",
-            "'fortran_order': False",
-            "'shape': " + shape
-        ];
-        let header = '{ ' + properties.join(', ') + ' }';
-        header += ' '.repeat(16 - ((header.length + 2 + 8 + 1) & 0x0f)) + '\n';
-        writer.string(header);
-
-        let size = context.itemSize;
-        for (let dimension of this._shape) {
-            size *= dimension;
-        }
-
-        context.data = new Uint8Array(size);
-        context.dataView = new DataView(context.data.buffer, context.data.byteOffset, size);
-        numpy.Array._encodeDimension(context, this._data, 0);
-        writer.bytes(context.data);
-
-        return writer.toBuffer();
-    }
-
-    static _encodeDimension(context, data, dimension) {
-        const size = context.shape[dimension];
-        const littleEndian = context.byteOrder === '<';
-        if (dimension == context.shape.length - 1) {
-            for (let i = 0; i < size; i++) {
-                switch (context.dataType) {
-                    case 'f2':
-                        context.dataView.setFloat16(context.position, data[i], littleEndian);
-                        break;
-                    case 'f4':
-                        context.dataView.setFloat32(context.position, data[i], littleEndian);
-                        break;
-                    case 'f8':
-                        context.dataView.setFloat64(context.position, data[i], littleEndian);
-                        break;
-                    case 'i1':
-                        context.dataView.setInt8(context.position, data[i], littleEndian);
-                        break;
-                    case 'i2':
-                        context.dataView.setInt16(context.position, data[i], littleEndian);
-                        break;
-                    case 'i4':
-                        context.dataView.setInt32(context.position, data[i], littleEndian);
-                        break;
-                    case 'i8':
-                        context.data.set(data[i].toBytes(littleEndian), context.position);
-                        break;
-                    case 'u1':
-                        context.dataView.setUint8(context.position, data[i], littleEndian);
-                        break;
-                    case 'u2':
-                        context.dataView.setUint16(context.position, data[i], littleEndian);
-                        break;
-                    case 'u4':
-                        context.dataView.setUint32(context.position, data[i], littleEndian);
-                        break;
-                    case 'u8':
-                        context.data.set(data[i].toBytes(littleEndian), context.position);
-                        break;
+            }
+            case 'npz': {
+                format = 'NumPy Zip';
+                const layers = new Map();
+                const entries = Array.from(context.value);
+                const separator = entries.every(([name]) => name.endsWith('.weight.npy')) ? '.' : '/';
+                for (const [key, array] of entries) {
+                    const name = key.replace(/\.npy$/, '');
+                    const path = name.split(separator);
+                    const parameterName = path.pop();
+                    const groupName = path.join(separator);
+                    if (!layers.has(groupName)) {
+                        layers.set(groupName, { name: groupName, parameters: [] });
+                    }
+                    const layer = layers.get(groupName);
+                    layer.parameters.push({
+                        name: parameterName,
+                        tensor: { name, array }
+                    });
                 }
-                context.position += context.itemSize;
+                graphs.push({ layers: Array.from(layers.values()) });
+                break;
+            }
+            default: {
+                throw new numpy.Error(`Unsupported NumPy format '${context.type}'.`);
             }
         }
-        else {
-            for (let j = 0; j < size; j++) {
-                numpy.Array._encodeDimension(context, data[j], dimension + 1);
+        return new numpy.Model(format, graphs);
+    }
+};
+
+numpy.Model = class {
+
+    constructor(format, graphs) {
+        this.format = format;
+        this.graphs = graphs.map((graph) => new numpy.Graph(graph));
+    }
+};
+
+numpy.Graph = class {
+
+    constructor(graph) {
+        this.name = graph.name || '';
+        this.nodes = graph.layers.map((layer) => new numpy.Node(layer));
+        this.inputs = [];
+        this.outputs = [];
+    }
+};
+
+numpy.Argument = class {
+
+    constructor(name, value) {
+        this.name = name;
+        this.value = value;
+    }
+};
+
+numpy.Value = class {
+
+    constructor(name, initializer) {
+        if (typeof name !== 'string') {
+            throw new numpy.Error(`Invalid value identifier '${JSON.stringify(name)}'.`);
+        }
+        this.name = name;
+        this.type = initializer.type;
+        this.initializer = initializer || null;
+    }
+};
+
+numpy.Node = class {
+
+    constructor(layer) {
+        this.name = layer.name || '';
+        this.type = { name: layer.type || 'Object' };
+        this.inputs = [];
+        this.outputs = [];
+        this.attributes = [];
+        for (const parameter of layer.parameters) {
+            const initializer = new numpy.Tensor(parameter.tensor.array);
+            const value = new numpy.Value(parameter.tensor.name || '', initializer);
+            const argument = new numpy.Argument(parameter.name, [value]);
+            this.inputs.push(argument);
+        }
+    }
+};
+
+numpy.Tensor = class  {
+
+    constructor(array) {
+        this.type = new numpy.TensorType(array.dtype.__name__, new numpy.TensorShape(array.shape));
+        this.stride = array.strides.map((stride) => stride / array.itemsize);
+        this.values = this.type.dataType === 'string' || this.type.dataType === 'object' || this.type.dataType === 'void' ? array.flatten().tolist() : array.tobytes();
+        this.encoding = this.type.dataType === 'string' || this.type.dataType === 'object' ? '|' : array.dtype.byteorder;
+    }
+};
+
+numpy.TensorType = class {
+
+    constructor(dataType, shape) {
+        this.dataType = dataType || '?';
+        this.shape = shape;
+    }
+
+    toString() {
+        return this.dataType + this.shape.toString();
+    }
+};
+
+numpy.TensorShape = class {
+
+    constructor(dimensions) {
+        this.dimensions = dimensions;
+    }
+
+    toString() {
+        return this.dimensions && this.dimensions.length > 0 ? `[${this.dimensions.join(',')}]` : '';
+    }
+};
+
+numpy.Utility = class {
+
+    static isTensor(obj) {
+        return obj && obj.__class__ &&
+            ((obj.__class__.__module__ === 'numpy' && obj.__class__.__name__ === 'ndarray') ||
+             (obj.__class__.__module__ === 'numpy.core.memmap' && obj.__class__.__name__ === 'memmap'));
+    }
+
+    static weights(obj) {
+        const dict = (obj, key) => {
+            const dict = key === '' ? obj : obj[key];
+            if (dict) {
+                const weights = new Map();
+                if (dict instanceof Map) {
+                    for (const [key, obj] of dict) {
+                        if (numpy.Utility.isTensor(obj)) {
+                            weights.set(key, obj);
+                            continue;
+                        } else if (obj instanceof Map && Array.from(obj).every(([, value]) => numpy.Utility.isTensor(value))) {
+                            for (const [name, value] of obj) {
+                                weights.set(`${key}.${name}`, value);
+                            }
+                            continue;
+                        } else if (key === '_metadata') {
+                            continue;
+                        }
+                        return null;
+                    }
+                    return weights;
+                } else if (!Array.isArray(dict)) {
+                    const set = new Set(['weight_order', 'lr', 'model_iter', '__class__']);
+                    for (const [name, value] of Object.entries(dict)) {
+                        if (numpy.Utility.isTensor(value)) {
+                            weights.set(name, value);
+                            continue;
+                        }
+                        if (set.has(name)) {
+                            continue;
+                        }
+                        if (value && !Array.isArray(value) && Object.entries(value).every(([, value]) => numpy.Utility.isTensor(value))) {
+                            if (value && value.__class__ && value.__class__.__module__ && value.__class__.__name__) {
+                                weights.set(`${name}.__class__`, `${value.__class__.__module__}.${value.__class__.__name__}`);
+                            }
+                            for (const [name, obj] of Object.entries(value)) {
+                                weights.set(`${name}.${name}`, obj);
+                            }
+                            continue;
+                        }
+                        return null;
+                    }
+                    return weights;
+                }
+            }
+            return null;
+        };
+        const list = (obj, key) => {
+            let list = key === '' ? obj : obj[key];
+            if (list && Array.isArray(list) && list.every((obj) => Object.values(obj).every((value) => numpy.Utility.isTensor(value)))) {
+                list = list.map((obj) => obj instanceof Map ? obj : new Map(Object.entries(obj)));
+            }
+            if (list && Array.isArray(list)) {
+                const weights = new Map();
+                for (let i = 0; i < list.length; i++) {
+                    const obj = list[i];
+                    if (numpy.Utility.isTensor(obj)) {
+                        weights.set(i.toString(), obj);
+                        continue;
+                    } else if (obj instanceof Map && Array.from(obj).every(([, value]) => numpy.Utility.isTensor(value))) {
+                        for (const [name, value] of obj) {
+                            weights.set(`${i}.${name}`, value);
+                        }
+                        continue;
+                    }
+                    return null;
+                }
+                return weights;
+            }
+            return null;
+        };
+        const keys = ['', 'blobs', 'model', 'experiment_state'];
+        for (const key of keys) {
+            const weights = dict(obj, key);
+            if (weights && weights.size > 0) {
+                return weights;
             }
         }
-    }
-}
-
-numpy.Reader = class {
-
-    constructor(buffer) {
-        this._buffer = buffer;
-        this._position = 0;
-    }
-
-    get position() {
-        return this._position;
-    }
-
-    get size() {
-        return this._buffer.length;
-    }
-
-    byte() {
-        return this._buffer[this._position++];
-    }
-
-    bytes(size) {
-        const value = this._buffer.slice(this._position, this._position + size);
-        this._position += size;
-        return value;
-    }
-
-    uint16() {
-        return this.byte() | (this.byte() << 8);
-    }
-
-    string() {
-        const size = this.uint16();
-        let value = '';
-        for (let i = 0; i < size; i++) {
-            value += String.fromCharCode(this.byte());
+        for (const key of keys) {
+            const weights = list(obj, key);
+            if (weights) {
+                return weights;
+            }
         }
-        return value;
-    }
-}
-
-numpy.Writer = class {
-
-    constructor() {
-        this._length = 0;
-        this._head = null;
-        this._tail = null;
-    }
-
-    byte(value) {
-        this.bytes([ value ]);
-    }
-
-    uint16(value) {
-        this.bytes([ value & 0xff, (value >> 8) & 0xff ]);
-    }
-
-    bytes(values) {
-        let array = new Uint8Array(values.length);
-        for (let i = 0; i < values.length; i++) {
-            array[i] = values[i];
-        }
-        this._write(array);
-    }
-
-    string(value) {
-        this.uint16(value.length);
-        let array = new Uint8Array(value.length);
-        for (let i = 0; i < value.length; i++) {
-            array[i] = value.charCodeAt(i);
-        }
-        this._write(array);
-    }
-
-    _write(array) {
-        let node = { buffer: array, next: null };
-        if (this._tail) {
-            this._tail.next = node;
-        }
-        else {
-            this._head = node;
-        }
-        this._tail = node;
-        this._length += node.buffer.length;
-    }
-
-    toBuffer() {
-        let array = new Uint8Array(this._length);
-        let position = 0;
-        let head = this._head;
-        while (head != null) {
-            array.set(head.buffer, position);
-            position += head.buffer.length;
-            head = head.next;
-        }
-        return array;
+        return null;
     }
 };
 
 numpy.Error = class extends Error {
+
     constructor(message) {
         super(message);
-        this.name = 'NumPy Error';
+        this.name = 'Error loading Chainer model.';
     }
 };
 
-if (typeof module !== 'undefined' && typeof module.exports === 'object') {
-    module.exports.Array = numpy.Array;
-}
+export const ModelFactory = numpy.ModelFactory;

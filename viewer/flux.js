@@ -1,140 +1,63 @@
-/* jshint esversion: 6 */
-/* eslint "indent": [ "error", 4, { "SwitchCase": 1 } ] */
 
 // Experimental
 
-var flux = flux || {};
-var marked = marked || require('marked');
+const flux = {};
 
 flux.ModelFactory = class {
 
-    match(context) {
-        const identifier = context.identifier; 
+    async match(context) {
+        const identifier = context.identifier;
         const extension = identifier.split('.').pop().toLowerCase();
-        if (extension === 'bson') {
-            return true;
+        const stream = context.stream;
+        if (stream && extension === 'bson') {
+            return context.set('flux.bson');
         }
-        return false;
+        return null;
     }
 
-    open(context, host) {
-        return host.require('./bson').then((bson) => {
-            let model = null;
-            const identifier = context.identifier;
-            try {
-                const reader = new bson.Reader(context.buffer);
-                const root = reader.read();
-                const obj = flux.ModelFactory._backref(root, root);
-                model = obj.model;
-                if (!model) {
-                    throw new flux.Error('File does not contain Flux model.');
-                }
-            }
-            catch (error) {
-                let message = error && error.message ? error.message : error.toString();
-                message = message.endsWith('.') ? message.substring(0, message.length - 1) : message;
-                throw new flux.Error(message + " in '" + identifier + "'.");
-            }
-            return flux.Metadata.open(host).then((metadata) => {
-                try {
-                    return new flux.Model(metadata, model);
-                }
-                catch (error) {
-                    let message = error && error.message ? error.message : error.toString();
-                    message = message.endsWith('.') ? message.substring(0, message.length - 1) : message;
-                    throw new flux.Error(message + " in '" + identifier + "'.");
-                }
-            });
-        });
-    }
-
-    static _backref(obj, root) {
-        if (Array.isArray(obj)) {
-            for (let i = 0; i < obj.length; i++) {
-                obj[i] = flux.ModelFactory._backref(obj[i], root);
-            }
+    async open(context) {
+        let root = null;
+        try {
+            root = await context.read('bson');
+        } catch (error) {
+            const message = error && error.message ? error.message : error.toString();
+            throw new flux.Error(`File format is not Flux BSON (${message.replace(/\.$/, '')}).`);
         }
-        else if (obj === Object(obj)) {
-            if (obj.tag == 'backref' && obj.ref) {
-                if (!root._backrefs[obj.ref - 1]) {
-                    throw new flux.Error("Invalid backref '" + obj.ref + "'.");
+        /* const metadata = */ context.metadata('flux-metadata.json');
+        const backref = (obj, root) => {
+            if (Array.isArray(obj)) {
+                for (let i = 0; i < obj.length; i++) {
+                    obj[i] = backref(obj[i], root);
                 }
-                obj = root._backrefs[obj.ref - 1];
-            }
-            for (let key of Object.keys(obj)) {
-                if (obj !== root || key !== '_backrefs') {
-                    obj[key] = flux.ModelFactory._backref(obj[key], root);
+            } else if (obj === Object(obj)) {
+                if (obj.tag === 'backref' && obj.ref) {
+                    if (!root._backrefs[obj.ref - 1]) {
+                        throw new flux.Error(`Invalid backref '${obj.ref}'.`);
+                    }
+                    obj = root._backrefs[obj.ref - 1];
+                }
+                for (const key of Object.keys(obj)) {
+                    if (obj !== root || key !== '_backrefs') {
+                        obj[key] = backref(obj[key], root);
+                    }
                 }
             }
+            return obj;
+        };
+        const obj = backref(root, root);
+        const model = obj.model;
+        if (!model) {
+            throw new flux.Error('File does not contain Flux model.');
         }
-        return obj;
+        throw new flux.Error("File contains unsupported Flux data.");
     }
-}
+};
 
 flux.Model = class {
 
     constructor(/* root */) {
-        // debugger;
-        this._format = 'Flux';
-        this._graphs = [];
-    }
-
-    get format() {
-        return this._format;
-    }
-
-    get graphs() {
-        return this._graphs;
-    }
-}
-
-flux.Metadata = class {
-
-    static open(host) {
-        if (flux.Metadata._metadata) {
-            return Promise.resolve(flux.Metadata._metadata);
-        }
-        return host.request(null, 'flux-metadata.json', 'utf-8').then((data) => {
-            flux.Metadata._metadata = new flux.Metadata(data);
-            return flux.Metadata._metadata;
-        }).catch(() => {
-            flux.Metadata._metadata = new flux.Metadata(null);
-            return flux.Metadata._metadatas;
-        });
-    }
-
-    constructor(data) {
-        this._map = {};
-        this._attributeCache = {};
-        if (data) {
-            let items = JSON.parse(data);
-            if (items) {
-                for (let item of items) {
-                    if (item.name && item.schema) {
-                        this._map[item.name] = item.schema;
-                    }
-                }
-            }
-        }
-    }
-
-    getSchema(operator) {
-        return this._map[operator] || null;
-    }
-
-    getAttributeSchema(operator, name) {
-        let map = this._attributeCache[operator];
-        if (!map) {
-            map = {};
-            let schema = this.getSchema(operator);
-            if (schema && schema.attributes && schema.attributes.length > 0) {
-                for (let attribute of schema.attributes) {
-                    map[attribute.name] = attribute;
-                }
-            }
-            this._attributeCache[operator] = map;
-        }
-        return map[name] || null;
+        this.format = 'Flux';
+        this.graphs = [];
     }
 };
 
@@ -146,6 +69,4 @@ flux.Error = class extends Error {
     }
 };
 
-if (module && module.exports) {
-    module.exports.ModelFactory = flux.ModelFactory;
-}
+export const ModelFactory = flux.ModelFactory;

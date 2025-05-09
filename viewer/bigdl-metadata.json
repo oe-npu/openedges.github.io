@@ -1,104 +1,95 @@
 [
   {
-    "name": "Dropout",
-    "schema": {
-      "category": "Dropout"
-    }
+    "name": "com.intel.analytics.bigdl.nn.Dropout",
+    "category": "Dropout"
   },
   {
-    "name": "Linear",
-    "schema": {
-      "category": "Layer",
-      "inputs": [
-        { "name": "inputs" },
-        { "name": "weight" },
-        { "name": "bias" }
-      ]
-    }
+    "name": "com.intel.analytics.bigdl.nn.InferReshape",
+    "category": "Shape"
   },
   {
-    "name": "NormalizeScale",
-    "schema": {
-      "category": "Normalization",
-      "inputs": [
-        { "name": "inputs" },
-        { "name": "w" }
-      ]
-    }
+    "name": "com.intel.analytics.bigdl.nn.JoinTable",
+    "category": "Tensor",
+    "inputs": [
+      { "name": "inputs", "list": true }
+    ],
+    "outputs": [
+      { "name": "output" }
+    ]
   },
   {
-    "name": "ReLU",
-    "schema": {
-      "category": "Activation"
-    }
+    "name": "com.intel.analytics.bigdl.nn.Linear",
+    "category": "Layer",
+    "inputs": [
+      { "name": "inputs" },
+      { "name": "weight" },
+      { "name": "bias" }
+    ]
+  },
+  {
+    "name": "com.intel.analytics.bigdl.nn.NormalizeScale",
+    "category": "Normalization",
+    "inputs": [
+      { "name": "inputs" },
+      { "name": "w" }
+    ]
+  },
+  {
+    "name": "com.intel.analytics.bigdl.nn.ReLU",
+    "category": "Activation"
   },
   {
     "name": "Scale",
-    "schema": {
-      "category": "Layer",
-      "inputs": [
-        { "name": "inputs" },
-        { "name": "weight" },
-        { "name": "bias" }
-      ]
-    }
+    "category": "Layer",
+    "inputs": [
+      { "name": "inputs" },
+      { "name": "weight" },
+      { "name": "bias" }
+    ]
   },
   {
     "name": "SoftMax",
-    "schema": {
-      "category": "Activation"
-    }
+    "category": "Activation"
   },
   {
-    "name": "SpatialBatchNormalization",
-    "schema": {
-      "category": "Normalization"
-    }
+    "name": "com.intel.analytics.bigdl.nn.SpatialAveragePooling",
+    "category": "Pool"
   },
   {
-    "name": "SpatialConvolution",
-    "schema": {
-      "category": "Layer",
-      "inputs": [
-        { "name": "inputs" },
-        { "name": "weight" },
-        { "name": "bias" }
-      ]
-    }
+    "name": "com.intel.analytics.bigdl.nn.SpatialBatchNormalization",
+    "category": "Normalization"
   },
   {
-    "name": "SpatialCrossMapLRN",
-    "schema": {
-      "category": "Normalization"
-    }
+    "name": "com.intel.analytics.bigdl.nn.quantized.SpatialConvolution",
+    "category": "Layer",
+    "inputs": [
+      { "name": "inputs" },
+      { "name": "weight" },
+      { "name": "bias" }
+    ]
   },
   {
-    "name": "SpatialDilatedConvolution",
-    "schema": {
-      "category": "Layer",
-      "inputs": [
-        { "name": "inputs" },
-        { "name": "weight" },
-        { "name": "bias" }
-      ]
-    }
+    "name": "com.intel.analytics.bigdl.nn.SpatialCrossMapLRN",
+    "category": "Normalization"
   },
   {
-    "name": "SpatialAveragePooling",
-    "schema": {
-      "category": "Pool"
-    }
+    "name": "com.intel.analytics.bigdl.nn.SpatialDilatedConvolution",
+    "category": "Layer",
+    "inputs": [
+      { "name": "inputs" },
+      { "name": "weight" },
+      { "name": "bias" }
+    ]
   },
   {
-    "name": "SpatialMaxPooling",
-    "schema": {
-      "category": "Pool"
-    }
+    "name": "com.intel.analytics.bigdl.nn.SpatialMaxPooling",
+    "category": "Pool"
   },
   {
-    "name": "Transpose",
-    "schema": {
-      "category": "Shape"
-    }
+    "name": "com.intel.analytics.bigdl.nn.Transpose",
+    "category": "Shape"
+  },
+  {
+    "name": "com.intel.analytics.bigdl.nn.View"
   }
 ]

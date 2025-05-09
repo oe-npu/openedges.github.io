@@ -1,494 +1,302 @@
-/* jshint esversion: 6 */
-/* eslint "indent": [ "error", 4, { "SwitchCase": 1 } ] */
 
 // Experimental
 
-var bigdl = bigdl || {};
-var long = long || { Long: require('long') };
-var protobuf = protobuf || require('protobufjs');
-var marked = marked || require('marked');
+const bigdl = {};
 
 bigdl.ModelFactory = class {
 
-    match(context) {
-        const identifier = context.identifier;
-        const extension = identifier.split('.').pop().toLowerCase();
-        if (extension == 'model' || extension == 'bigdl') {
-            const tags = context.tags('pb');
-            if (tags.has(2) && tags.has(7) && tags.has(8) && tags.has(9) && tags.has(10) && tags.has(11) && tags.has(12)) {
-                return true;
-            }
+    async match(context) {
+        const tags = await context.tags('pb');
+        if (tags.has(2) && tags.has(7) && tags.has(8) &&
+            tags.has(9) && tags.has(10) && tags.has(11) && tags.has(12)) {
+            return context.set('bigdl');
         }
+        return null;
     }
 
-    open(context, host) {
-        return host.require('./bigdl-proto').then(() => {
-            return bigdl.Metadata.open(host).then((metadata) => {
-                const identifier = context.identifier;
-                try {
-                    // https://github.com/intel-analytics/BigDL/blob/master/spark/dl/src/main/resources/serialization/bigdl.proto
-                    bigdl.proto = protobuf.roots.bigdl.com.intel.analytics.bigdl.serialization;
-                    let module = bigdl.proto.BigDLModule.decode(context.buffer);
-                    return new bigdl.Model(metadata, module);
-                }
-                catch (error) {
-                    host.exception(error, false);
-                    let message = error && error.message ? error.message : error.toString();
-                    message = message.endsWith('.') ? message.substring(0, message.length - 1) : message;
-                    throw new bigdl.Error(message + " in '" + identifier + "'.");
-                }
-            });
-        });
+    async open(context) {
+        bigdl.proto = await context.require('./bigdl-proto');
+        bigdl.proto = bigdl.proto.com.intel.analytics.bigdl.serialization;
+        let module = null;
+        try {
+            // https://github.com/intel-analytics/BigDL/blob/master/spark/dl/src/main/resources/serialization/bigdl.proto
+            const reader = await context.read('protobuf.binary');
+            module = bigdl.proto.BigDLModule.decode(reader);
+        } catch (error) {
+            const message = error && error.message ? error.message : error.toString();
+            throw new bigdl.Error(`File format is not bigdl.BigDLModule (${message.replace(/\.$/, '')}).`);
+        }
+        const metadata = await context.metadata('bigdl-metadata.json');
+        return new bigdl.Model(metadata, module);
     }
-}
+};
 
 bigdl.Model = class {
 
     constructor(metadata, module) {
-        this._graphs = [];
-        this._graphs.push(new bigdl.Graph(metadata, module));
+        const version = module && module.version ? module.version : '';
+        this.format = `BigDL${version ? ` v${version}` : ''}`;
+        this.graphs = [new bigdl.Graph(metadata, module)];
     }
-
-    get format() {
-        return 'BigDL';
-    }
-
-    get graphs() {
-        return this._graphs;
-    }
-}
+};
 
 bigdl.Graph = class {
 
     constructor(metadata, module) {
-        this._type = module.moduleType;
-        this._version = module.version;
-        this._inputs = [];
-        this._outputs = [];
-        this._nodes = [];
-        this._loadModule(metadata, '', module);
-    }
-
-    _loadModule(metadata, group, module) {
-        switch (module.moduleType) {
-            case 'com.intel.analytics.bigdl.nn.StaticGraph': {
-                this._loadStaticGraph(metadata, group, module)
-                break;
+        this.type = module.moduleType;
+        this.inputs = [];
+        this.outputs = [];
+        this.nodes = [];
+        const tensors = module.attr && module.attr.global_storage && module.attr.global_storage.nameAttrListValue && module.attr.global_storage.nameAttrListValue.attr ? module.attr.global_storage.nameAttrListValue.attr : {};
+        const values = new Map();
+        values.map = (name) => {
+            if (!values.has(name)) {
+                values.set(name, new bigdl.Value(name));
             }
-            case 'com.intel.analytics.bigdl.nn.Sequential': {
-                this._loadSequential(metadata, group, module)
-                break;
+            return values.get(name);
+        };
+        const loadModule = (metadata, module, tensors) => {
+            switch (module.moduleType) {
+                case 'com.intel.analytics.bigdl.nn.StaticGraph':
+                case 'com.intel.analytics.bigdl.nn.Sequential': {
+                    for (const submodule of module.subModules) {
+                        loadModule(metadata, submodule, tensors);
+                    }
+                    break;
+                }
+                case 'com.intel.analytics.bigdl.nn.Input': {
+                    const argument = new bigdl.Argument(module.name, [values.map(module.name)]);
+                    this.inputs.push(argument);
+                    break;
+                }
+                default: {
+                    const node = new bigdl.Node(metadata, module, tensors, values);
+                    this.nodes.push(node);
+                    break;
+                }
             }
-            default: {
-                this._nodes.push(new bigdl.Node(metadata, group, module));
-                break;
-            }
-        }
+        };
+        loadModule(metadata, module, tensors);
     }
-
-    _loadSequential(metadata, group, module) {
-        group = group.length > 0 ?  group + '.' + module.namePostfix : module.namePostfix;
-        for (let submodule of module.subModules) {
-            this._loadModule(metadata, group, submodule);
-        }
-    }
-
-    _loadStaticGraph(metadata, group, module) {
-        group = group.length > 0 ?  group + '.' + module.namePostfix : module.namePostfix;
-        for (let submodule of module.subModules) {
-            this._loadModule(metadata, group, submodule);
-        }
-    }
-
-    get groups() {
-        return this._groups || false;
-    }
-
-    get type() {
-        return this._type;
-    }
-
-    get version() {
-        return this._version;
-    }
-
-    get inputs() {
-        return this._inputs;
-    }
-
-    get outputs() {
-        return this._outputs;
-    }
-
-    get nodes() {
-        return this._nodes;
-    }
-}
-
-bigdl.Parameter = class {
-
-    constructor(name, args) {
-        this._name = name;
-        this._arguments = args;
-    }
-
-    get name() {
-        return this._name;
-    }
-
-    get visible() {
-        return true;
-    }
-
-    get arguments() {
-        return this._arguments;
-    }
-}
+};
 
 bigdl.Argument = class {
 
-    constructor(id, type, initializer) {
-        id.toString();
-        this._id = id;
-        this._type = type || null;
-        this._initializer = initializer || null;
+    constructor(name, value, type) {
+        this.name = name;
+        this.value = value;
+        this.type = type || null;
     }
+};
 
-    get id() {
-        return this._id;
-    }
+bigdl.Value = class {
 
-    get type() {
-        if (this._initializer) {
-            return this._initializer.type;
+    constructor(name, type, initializer) {
+        if (typeof name !== 'string') {
+            throw new bigdl.Error(`Invalid value identifier '${JSON.stringify(name)}'.`);
         }
-        return this._type;
+        this.name = name;
+        this.type = !type && initializer ? initializer.type : type;
+        this.initializer = initializer;
     }
-
-    get initializer() {
-        return this._initializer;
-    }
-}
+};
 
 bigdl.Node = class {
 
-    constructor(metadata, group, module) {
-        this._metadata = metadata;
-        this._group = group;
-        this._type = module.moduleType.split('.').pop();
-        this._name = module.name;
-        this._attributes = [];
-        this._inputs = [];
-        this._outputs = [];
-        this._inputs.push(new bigdl.Parameter('input', module.preModules.map((id) => new bigdl.Argument(id, null, null))));
-        const schema =  metadata.getSchema(this.operator);
-        let inputs = (schema && schema.inputs) ? schema.inputs.slice() : [];
+    constructor(metadata, module, tensors, values) {
+        const type = module.moduleType;
+        this.name = module.name;
+        this.attributes = [];
+        this.inputs = [];
+        this.outputs = [];
+        this.inputs.push(new bigdl.Argument('input', module.preModules.map((id) => values.map(id))));
+        this.type =  metadata.type(type) || { name: type };
+        const inputs = this.type && this.type.inputs ? this.type.inputs.slice() : [];
         inputs.shift();
         if (module.weight) {
             inputs.shift();
-            this._inputs.push(new bigdl.Parameter('weight', [
-                new bigdl.Argument('', null, new bigdl.Tensor(module.weight))
+            this.inputs.push(new bigdl.Argument('weight', [
+                new bigdl.Value('', null, new bigdl.Tensor(module.weight, tensors))
             ]));
         }
         if (module.bias) {
             inputs.shift();
-            this._inputs.push(new bigdl.Parameter('bias', [
-                new bigdl.Argument('', null, new bigdl.Tensor(module.bias))
+            this.inputs.push(new bigdl.Argument('bias', [
+                new bigdl.Value('', null, new bigdl.Tensor(module.bias, tensors))
             ]));
         }
         if (module.parameters && module.parameters.length > 0) {
-            for (let parameter of module.parameters) {
+            for (const parameter of module.parameters) {
                 const input = inputs.shift();
-                const inputName = input ? input.name : this._inputs.length.toString();
-                this._inputs.push(new bigdl.Parameter(inputName, [ 
-                    new bigdl.Argument('', null, new bigdl.Tensor(parameter))
+                const inputName = input ? input.name : this.inputs.length.toString();
+                this.inputs.push(new bigdl.Argument(inputName, [
+                    new bigdl.Value('', null, new bigdl.Tensor(parameter, tensors))
                 ]));
             }
         }
-        for (let key of Object.keys(module.attr)) {
-            const value = module.attr[key];
+        for (const [key, obj] of Object.entries(module.attr)) {
             if (key === 'module_numerics' || key === 'module_tags') {
                 continue;
             }
-            if (value.dataType === bigdl.proto.DataType.TENSOR) {
-                if (value.value) {
-                    this._inputs.push(new bigdl.Parameter(key, [ new bigdl.Argument('', null, new bigdl.Tensor(value.tensorValue)) ]));
+            if (obj.dataType === bigdl.proto.DataType.TENSOR) {
+                if (obj.value) {
+                    this.inputs.push(new bigdl.Argument(key, [new bigdl.Value('', null, new bigdl.Tensor(obj.tensorValue, tensors))]));
                 }
                 continue;
             }
-            if (value.dataType === bigdl.proto.DataType.REGULARIZER && value.value === undefined) {
+            if (obj.dataType === bigdl.proto.DataType.REGULARIZER && obj.value === undefined) {
                 continue;
             }
-            if (value.dataType === bigdl.proto.DataType.ARRAY_VALUE && value.arrayValue.datatype === bigdl.proto.DataType.TENSOR) {
-                this._inputs.push(new bigdl.Parameter(key, value.arrayValue.tensor.map((tensor) => new bigdl.Argument('', null, new bigdl.Tensor(tensor)))));
+            if (obj.dataType === bigdl.proto.DataType.ARRAY_VALUE && obj.arrayValue.datatype === bigdl.proto.DataType.TENSOR) {
+                this.inputs.push(new bigdl.Argument(key, obj.arrayValue.tensor.map((tensor) => new bigdl.Value('', null, new bigdl.Tensor(tensor, tensors)))));
                 continue;
             }
-            this._attributes.push(new bigdl.Attribute(metadata, this._operator, key, value));
+            let type = null;
+            let value = null;
+            switch (obj.dataType) {
+                case bigdl.proto.DataType.INT32: {
+                    type = 'int32';
+                    value = obj.int32Value;
+                    break;
+                }
+                case bigdl.proto.DataType.FLOAT: {
+                    type = 'float32';
+                    value = obj.floatValue;
+                    break;
+                }
+                case bigdl.proto.DataType.DOUBLE: {
+                    type = 'float64';
+                    value = obj.doubleValue;
+                    break;
+                }
+                case bigdl.proto.DataType.BOOL: {
+                    type = 'boolean';
+                    value = obj.boolValue;
+                    break;
+                }
+                case bigdl.proto.DataType.REGULARIZER: {
+                    value = obj.value;
+                    break;
+                }
+                case bigdl.proto.DataType.MODULE: {
+                    value = obj.bigDLModule;
+                    break;
+                }
+                case bigdl.proto.DataType.NAME_ATTR_LIST: {
+                    value = value.nameAttrListValue;
+                    break;
+                }
+                case bigdl.proto.DataType.ARRAY_VALUE: {
+                    switch (obj.arrayValue.datatype) {
+                        case bigdl.proto.DataType.INT32: {
+                            type = 'int32[]';
+                            value = obj.arrayValue.i32;
+                            break;
+                        }
+                        case bigdl.proto.DataType.FLOAT: {
+                            type = 'float32[]';
+                            value = obj.arrayValue.flt;
+                            break;
+                        }
+                        case bigdl.proto.DataType.STRING: {
+                            type = 'string[]';
+                            value = obj.arrayValue.str;
+                            break;
+                        }
+                        case bigdl.proto.DataType.TENSOR: {
+                            type = 'tensor[]';
+                            value = obj.arrayValue.tensor;
+                            break;
+                        }
+                        default: {
+                            throw new bigdl.Error(`Unsupported attribute array data type '${obj.arrayValue.datatype}'.`);
+                        }
+                    }
+                    break;
+                }
+                case bigdl.proto.DataType.DATA_FORMAT: {
+                    switch (obj.dataFormatValue) {
+                        case 0: value = 'NCHW'; break;
+                        case 1: value = 'NHWC'; break;
+                        default: throw new bigdl.Error(`Unsupported data format '${obj.dataFormatValue}'.`);
+                    }
+                    break;
+                }
+                default: {
+                    throw new bigdl.Error(`Unsupported attribute data type '${obj.dataType}'.`);
+                }
+            }
+            const argument = new bigdl.Argument(key, value, type);
+            this.attributes.push(argument);
         }
-        const output = this._name || this._type + module.namePostfix
-        this._outputs.push(new bigdl.Parameter('output', [
-            new bigdl.Argument(output, null, null)
-        ]));
+        const output = this.name || this.type + module.namePostfix;
+        this.outputs.push(new bigdl.Argument('output', [values.map(output)]));
     }
-
-    get group() {
-        return this._group;
-    }
-
-    get operator() {
-        return this._type;
-    }
-
-    get category() {
-        const schema = this._metadata.getSchema(this._type);
-        return (schema && schema.category) ? schema.category : '';
-    }
-
-    get documentation() {
-        return '';
-    }
-
-    get name() {
-        return this._name;
-    }
-
-    get inputs() {
-        return this._inputs;
-    }
-
-    get outputs() {
-        return this._outputs;
-    }
-
-    get attributes() {
-        return this._attributes;
-    }
-}
-
-bigdl.Attribute = class {
-
-    constructor(metadata, operator, name, value) {
-        this._name = name;
-        switch (value.dataType) {
-            case bigdl.proto.DataType.INT32: {
-                this._type = 'int32';
-                this._value = value.int32Value;
-                break;
-            }
-            case bigdl.proto.DataType.FLOAT: {
-                this._type = 'float32';
-                this._value = value.floatValue;
-                break;
-            }
-            case bigdl.proto.DataType.DOUBLE: {
-                this._type = 'float64';
-                this._value = value.doubleValue;
-                break;
-            }
-            case bigdl.proto.DataType.BOOL: {
-                this._type = 'boolean';
-                this._value = value.boolValue;
-                break;
-            }
-            case bigdl.proto.DataType.REGULARIZER: {
-                this._value = value.value;
-                break;
-            }
-            case bigdl.proto.DataType.MODULE: {
-                this._value = value.bigDLModule;
-                break;
-            }
-            case bigdl.proto.DataType.NAME_ATTR_LIST: {
-                this._value = value.nameAttrListValue;
-                break;
-            }
-            case bigdl.proto.DataType.ARRAY_VALUE: {
-                switch (value.arrayValue.datatype) {
-                    case bigdl.proto.DataType.INT32: {
-                        this._type = 'int32[]';
-                        this._value = value.arrayValue.i32;
-                        break;
-                    }
-                    case bigdl.proto.DataType.FLOAT: {
-                        this._type = 'float32[]';
-                        this._value = value.arrayValue.flt;
-                        break;
-                    }
-                    case bigdl.proto.DataType.STRING: {
-                        this._type = 'string[]';
-                        this._value = value.arrayValue.str;
-                        break;
-                    }
-                    case bigdl.proto.DataType.TENSOR: {
-                        this._type = 'tensor[]';
-                        this._value = value.arrayValue.tensor;
-                        break;
-                    }
-                    default: {
-                        throw new bigdl.Error("Unsupported attribute array data type '" + value.arrayValue.datatype + "'.");
-                    }
-                }
-                break;
-            }
-            case bigdl.proto.DataType.DATA_FORMAT: {
-                this._dataType = 'InputDataFormat';
-                switch (value.dataFormatValue) {
-                    case 0: this._value = 'NCHW'; break;
-                    case 1: this._value = 'NHWC'; break;
-                }
-                break;
-            }
-            default: {
-                throw new bigdl.Error("Unsupported attribute data type '" + value.dataType + "'.");
-            }
-        }
-    }
-
-    get type() {
-        return '';
-    }
-
-    get name() {
-        return this._name;
-    }
-
-    get value() {
-        return this._value;
-    }
-
-    get visible() {
-        return true;
-    }
-}
+};
 
 bigdl.Tensor = class {
 
-    constructor(tensor) {
-        this._type = new bigdl.TensorType(tensor.datatype, new bigdl.TensorShape(tensor.size));
+    constructor(tensor /*, tensors */) {
+        this.type = new bigdl.TensorType(tensor.datatype, new bigdl.TensorShape(tensor.size));
+        /*
+        if (tensor && tensor.id && tensors && tensors[tensor.id] && tensors[tensor.id].tensorValue && tensors[tensor.id].tensorValue.storage) {
+            const storage = tensors[tensor.id].tensorValue.storage;
+            switch (this.type.dataType) {
+                case 'float32':
+                    if (storage.bytes_data && storage.bytes_data.length > 0) {
+                        this.values = storage.bytes_data[0];
+                        this.encoding = '<';
+                    }
+                    else if (storage.float_data && storage.float_data.length > 0) {
+                        this.values = storage.float_data;
+                        this.encoding = '|';
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+        */
     }
-
-    get kind() {
-        return 'Parameter';
-    }
-
-    get type() {
-        return this._type;
-    }
-
-    get state() {
-        return 'Not supported.';
-    }
-
-    get value() {
-        return null;
-    }
-
-    toString() {
-        return '';
-    }
-}
+};
 
 bigdl.TensorType = class {
 
     constructor(dataType, shape) {
         switch (dataType) {
-            case bigdl.proto.DataType.FLOAT: this._dataType = 'float32'; break
-            case bigdl.proto.DataType.DOUBLE: this._dataType = 'float64'; break;
-            default: throw new bigdl.Error("Unsupported tensor type '" + dataType + "'.");
+            case bigdl.proto.DataType.FLOAT: this.dataType = 'float32'; break;
+            case bigdl.proto.DataType.DOUBLE: this.dataType = 'float64'; break;
+            default: throw new bigdl.Error(`Unsupported tensor type '${dataType}'.`);
         }
-        this._shape = shape;
-    }
-
-    get dataType() {
-        return this._dataType;
-    }
-
-    get shape() {
-        return this._shape;
+        this.shape = shape;
     }
 
     toString() {
-        return (this.dataType || '?') + this._shape.toString();
+        return (this.dataType || '?') + this.shape.toString();
     }
-}
+};
 
 bigdl.TensorShape = class {
 
     constructor(dimensions) {
-        this._dimensions = dimensions.map((dimension) => {
-            if (dimension && long.Long.isLong(dimension)) {
-                return dimension.toNumber();
-            }
-            return dimension;
-        });
-    }
-
-    get dimensions() {
-        return this._dimensions;
+        this.dimensions = dimensions;
+        if (!dimensions.every((dimension) => Number.isInteger(dimension))) {
+            throw new bigdl.Error(`Invalid tensor shape '${JSON.stringify(dimensions)}'.`);
+        }
     }
 
     toString() {
-        return this._dimensions ? ('[' + this._dimensions.map((dimension) => dimension.toString()).join(',') + ']') : '';
-    }
-}
-
-bigdl.Metadata = class {
-
-    static open(host) {
-        if (bigdl.Metadata._metadata) {
-            return Promise.resolve(bigdl.Metadata._metadata);
-        }
-        return host.request(null, 'bigdl-metadata.json', 'utf-8').then((data) => {
-            bigdl.Metadata._metadata = new bigdl.Metadata(data);
-            return bigdl.Metadata._metadata;
-        }).catch(() => {
-            bigdl.Metadata._metadata = new bigdl.Metadata(null);
-            return bigdl.Metadata._metadata;
-        });
-    }
-
-    constructor(data) {
-        this._map = {};
-        this._attributeCache = {};
-        if (data) {
-            let items = JSON.parse(data);
-            if (items) {
-                for (let item of items) {
-                    if (item.name && item.schema) {
-                        this._map[item.name] = item.schema;
-                    }
-                }
-            }
-        }
-    }
-
-    getSchema(operator) {
-        return this._map[operator] || null;
-    }
-
-    getAttributeSchema(operator, name) {
-        let map = this._attributeCache[operator];
-        if (!map) {
-            map = {};
-            const schema = this.getSchema(operator);
-            if (schema && schema.attributes && schema.attributes.length > 0) {
-                for (let attribute of schema.attributes) {
-                    map[attribute.name] = attribute;
-                }
-            }
-            this._attributeCache[operator] = map;
-        }
-        return map[name] || null;
+        return this.dimensions ? (`[${this.dimensions.map((dimension) => dimension.toString()).join(',')}]`) : '';
     }
 };
 
 bigdl.Error = class extends Error {
+
     constructor(message) {
         super(message);
         this.name = 'Error loading BigDL model.';
     }
 };
 
-if (typeof module !== 'undefined' && typeof module.exports === 'object') {
-    module.exports.ModelFactory = bigdl.ModelFactory;
-}
+export const ModelFactory = bigdl.ModelFactory;
+

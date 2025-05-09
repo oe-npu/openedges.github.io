@@ -1,1029 +1,1648 @@
-/*eslint-disable block-scoped-var, id-length, no-control-regex, no-magic-numbers, no-prototype-builtins, no-redeclare, no-shadow, no-var, sort-vars*/
-(function($protobuf) {
-    "use strict";
 
-    var $Reader = $protobuf.Reader, $util = $protobuf.util;
-    
-    var $root = $protobuf.roots.paddle || ($protobuf.roots.paddle = {});
-    
-    $root.paddle = (function() {
-    
-        var paddle = {};
-    
-        paddle.framework = (function() {
-    
-            var framework = {};
-    
-            framework.proto = (function() {
-    
-                var proto = {};
-    
-                proto.Version = (function() {
-    
-                    function Version(properties) {
-                        if (properties)
-                            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                                if (properties[keys[i]] != null)
-                                    this[keys[i]] = properties[keys[i]];
-                    }
-    
-                    Version.prototype.version = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
-    
-                    Version.decode = function decode(reader, length) {
-                        if (!(reader instanceof $Reader))
-                            reader = $Reader.create(reader);
-                        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.paddle.framework.proto.Version();
-                        while (reader.pos < end) {
-                            var tag = reader.uint32();
-                            switch (tag >>> 3) {
-                            case 1:
-                                message.version = reader.int64();
-                                break;
-                            default:
-                                reader.skipType(tag & 7);
-                                break;
-                            }
-                        }
-                        return message;
-                    };
-    
-                    return Version;
-                })();
-    
-                proto.AttrType = (function() {
-                    var valuesById = {}, values = Object.create(valuesById);
-                    values[valuesById[0] = "INT"] = 0;
-                    values[valuesById[1] = "FLOAT"] = 1;
-                    values[valuesById[2] = "STRING"] = 2;
-                    values[valuesById[3] = "INTS"] = 3;
-                    values[valuesById[4] = "FLOATS"] = 4;
-                    values[valuesById[5] = "STRINGS"] = 5;
-                    values[valuesById[6] = "BOOLEAN"] = 6;
-                    values[valuesById[7] = "BOOLEANS"] = 7;
-                    values[valuesById[8] = "BLOCK"] = 8;
-                    values[valuesById[9] = "LONG"] = 9;
-                    values[valuesById[10] = "BLOCKS"] = 10;
-                    values[valuesById[11] = "LONGS"] = 11;
-                    return values;
-                })();
-    
-                proto.OpDesc = (function() {
-    
-                    function OpDesc(properties) {
-                        this.inputs = [];
-                        this.outputs = [];
-                        this.attrs = [];
-                        if (properties)
-                            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                                if (properties[keys[i]] != null)
-                                    this[keys[i]] = properties[keys[i]];
-                    }
-    
-                    OpDesc.prototype.type = "";
-                    OpDesc.prototype.inputs = $util.emptyArray;
-                    OpDesc.prototype.outputs = $util.emptyArray;
-                    OpDesc.prototype.attrs = $util.emptyArray;
-                    OpDesc.prototype.is_target = false;
-    
-                    OpDesc.decode = function decode(reader, length) {
-                        if (!(reader instanceof $Reader))
-                            reader = $Reader.create(reader);
-                        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.paddle.framework.proto.OpDesc();
-                        while (reader.pos < end) {
-                            var tag = reader.uint32();
-                            switch (tag >>> 3) {
-                            case 3:
-                                message.type = reader.string();
-                                break;
-                            case 1:
-                                if (!(message.inputs && message.inputs.length))
-                                    message.inputs = [];
-                                message.inputs.push($root.paddle.framework.proto.OpDesc.Var.decode(reader, reader.uint32()));
-                                break;
-                            case 2:
-                                if (!(message.outputs && message.outputs.length))
-                                    message.outputs = [];
-                                message.outputs.push($root.paddle.framework.proto.OpDesc.Var.decode(reader, reader.uint32()));
-                                break;
-                            case 4:
-                                if (!(message.attrs && message.attrs.length))
-                                    message.attrs = [];
-                                message.attrs.push($root.paddle.framework.proto.OpDesc.Attr.decode(reader, reader.uint32()));
-                                break;
-                            case 5:
-                                message.is_target = reader.bool();
-                                break;
-                            default:
-                                reader.skipType(tag & 7);
-                                break;
-                            }
-                        }
-                        if (!message.hasOwnProperty("type"))
-                            throw $util.ProtocolError("missing required 'type'", { instance: message });
-                        return message;
-                    };
-    
-                    OpDesc.Attr = (function() {
-    
-                        function Attr(properties) {
-                            this.ints = [];
-                            this.floats = [];
-                            this.strings = [];
-                            this.bools = [];
-                            this.blocks_idx = [];
-                            this.longs = [];
-                            if (properties)
-                                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                                    if (properties[keys[i]] != null)
-                                        this[keys[i]] = properties[keys[i]];
-                        }
-    
-                        Attr.prototype.name = "";
-                        Attr.prototype.type = 0;
-                        Attr.prototype.i = 0;
-                        Attr.prototype.f = 0;
-                        Attr.prototype.s = "";
-                        Attr.prototype.ints = $util.emptyArray;
-                        Attr.prototype.floats = $util.emptyArray;
-                        Attr.prototype.strings = $util.emptyArray;
-                        Attr.prototype.b = false;
-                        Attr.prototype.bools = $util.emptyArray;
-                        Attr.prototype.block_idx = 0;
-                        Attr.prototype.l = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
-                        Attr.prototype.blocks_idx = $util.emptyArray;
-                        Attr.prototype.longs = $util.emptyArray;
-    
-                        Attr.decode = function decode(reader, length) {
-                            if (!(reader instanceof $Reader))
-                                reader = $Reader.create(reader);
-                            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.paddle.framework.proto.OpDesc.Attr();
-                            while (reader.pos < end) {
-                                var tag = reader.uint32();
-                                switch (tag >>> 3) {
-                                case 1:
-                                    message.name = reader.string();
-                                    break;
-                                case 2:
-                                    message.type = reader.int32();
-                                    break;
-                                case 3:
-                                    message.i = reader.int32();
-                                    break;
-                                case 4:
-                                    message.f = reader.float();
-                                    break;
-                                case 5:
-                                    message.s = reader.string();
-                                    break;
-                                case 6:
-                                    if (!(message.ints && message.ints.length))
-                                        message.ints = [];
-                                    if ((tag & 7) === 2) {
-                                        var end2 = reader.uint32() + reader.pos;
-                                        while (reader.pos < end2)
-                                            message.ints.push(reader.int32());
-                                    } else
-                                        message.ints.push(reader.int32());
-                                    break;
-                                case 7:
-                                    if (!(message.floats && message.floats.length))
-                                        message.floats = [];
-                                    if ((tag & 7) === 2) {
-                                        var end2 = reader.uint32() + reader.pos;
-                                        while (reader.pos < end2)
-                                            message.floats.push(reader.float());
-                                    } else
-                                        message.floats.push(reader.float());
-                                    break;
-                                case 8:
-                                    if (!(message.strings && message.strings.length))
-                                        message.strings = [];
-                                    message.strings.push(reader.string());
-                                    break;
-                                case 10:
-                                    message.b = reader.bool();
-                                    break;
-                                case 11:
-                                    if (!(message.bools && message.bools.length))
-                                        message.bools = [];
-                                    if ((tag & 7) === 2) {
-                                        var end2 = reader.uint32() + reader.pos;
-                                        while (reader.pos < end2)
-                                            message.bools.push(reader.bool());
-                                    } else
-                                        message.bools.push(reader.bool());
-                                    break;
-                                case 12:
-                                    message.block_idx = reader.int32();
-                                    break;
-                                case 13:
-                                    message.l = reader.int64();
-                                    break;
-                                case 14:
-                                    if (!(message.blocks_idx && message.blocks_idx.length))
-                                        message.blocks_idx = [];
-                                    if ((tag & 7) === 2) {
-                                        var end2 = reader.uint32() + reader.pos;
-                                        while (reader.pos < end2)
-                                            message.blocks_idx.push(reader.int32());
-                                    } else
-                                        message.blocks_idx.push(reader.int32());
-                                    break;
-                                case 15:
-                                    if (!(message.longs && message.longs.length))
-                                        message.longs = [];
-                                    if ((tag & 7) === 2) {
-                                        var end2 = reader.uint32() + reader.pos;
-                                        while (reader.pos < end2)
-                                            message.longs.push(reader.int64());
-                                    } else
-                                        message.longs.push(reader.int64());
-                                    break;
-                                default:
-                                    reader.skipType(tag & 7);
-                                    break;
-                                }
-                            }
-                            if (!message.hasOwnProperty("name"))
-                                throw $util.ProtocolError("missing required 'name'", { instance: message });
-                            if (!message.hasOwnProperty("type"))
-                                throw $util.ProtocolError("missing required 'type'", { instance: message });
-                            return message;
-                        };
-    
-                        return Attr;
-                    })();
-    
-                    OpDesc.Var = (function() {
-    
-                        function Var(properties) {
-                            this["arguments"] = [];
-                            if (properties)
-                                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                                    if (properties[keys[i]] != null)
-                                        this[keys[i]] = properties[keys[i]];
-                        }
-    
-                        Var.prototype.parameter = "";
-                        Var.prototype["arguments"] = $util.emptyArray;
-    
-                        Var.decode = function decode(reader, length) {
-                            if (!(reader instanceof $Reader))
-                                reader = $Reader.create(reader);
-                            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.paddle.framework.proto.OpDesc.Var();
-                            while (reader.pos < end) {
-                                var tag = reader.uint32();
-                                switch (tag >>> 3) {
-                                case 1:
-                                    message.parameter = reader.string();
-                                    break;
-                                case 2:
-                                    if (!(message["arguments"] && message["arguments"].length))
-                                        message["arguments"] = [];
-                                    message["arguments"].push(reader.string());
-                                    break;
-                                default:
-                                    reader.skipType(tag & 7);
-                                    break;
-                                }
-                            }
-                            if (!message.hasOwnProperty("parameter"))
-                                throw $util.ProtocolError("missing required 'parameter'", { instance: message });
-                            return message;
-                        };
-    
-                        return Var;
-                    })();
-    
-                    return OpDesc;
-                })();
-    
-                proto.OpProto = (function() {
-    
-                    function OpProto(properties) {
-                        this.inputs = [];
-                        this.outputs = [];
-                        this.attrs = [];
-                        if (properties)
-                            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                                if (properties[keys[i]] != null)
-                                    this[keys[i]] = properties[keys[i]];
-                    }
-    
-                    OpProto.prototype.type = "";
-                    OpProto.prototype.inputs = $util.emptyArray;
-                    OpProto.prototype.outputs = $util.emptyArray;
-                    OpProto.prototype.attrs = $util.emptyArray;
-                    OpProto.prototype.comment = "";
-    
-                    OpProto.decode = function decode(reader, length) {
-                        if (!(reader instanceof $Reader))
-                            reader = $Reader.create(reader);
-                        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.paddle.framework.proto.OpProto();
-                        while (reader.pos < end) {
-                            var tag = reader.uint32();
-                            switch (tag >>> 3) {
-                            case 1:
-                                message.type = reader.string();
-                                break;
-                            case 2:
-                                if (!(message.inputs && message.inputs.length))
-                                    message.inputs = [];
-                                message.inputs.push($root.paddle.framework.proto.OpProto.Var.decode(reader, reader.uint32()));
-                                break;
-                            case 3:
-                                if (!(message.outputs && message.outputs.length))
-                                    message.outputs = [];
-                                message.outputs.push($root.paddle.framework.proto.OpProto.Var.decode(reader, reader.uint32()));
-                                break;
-                            case 4:
-                                if (!(message.attrs && message.attrs.length))
-                                    message.attrs = [];
-                                message.attrs.push($root.paddle.framework.proto.OpProto.Attr.decode(reader, reader.uint32()));
-                                break;
-                            case 5:
-                                message.comment = reader.string();
-                                break;
-                            default:
-                                reader.skipType(tag & 7);
-                                break;
-                            }
-                        }
-                        if (!message.hasOwnProperty("type"))
-                            throw $util.ProtocolError("missing required 'type'", { instance: message });
-                        if (!message.hasOwnProperty("comment"))
-                            throw $util.ProtocolError("missing required 'comment'", { instance: message });
-                        return message;
-                    };
-    
-                    OpProto.Var = (function() {
-    
-                        function Var(properties) {
-                            if (properties)
-                                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                                    if (properties[keys[i]] != null)
-                                        this[keys[i]] = properties[keys[i]];
-                        }
-    
-                        Var.prototype.name = "";
-                        Var.prototype.comment = "";
-                        Var.prototype.duplicable = false;
-                        Var.prototype.intermediate = false;
-                        Var.prototype.dispensable = false;
-    
-                        Var.decode = function decode(reader, length) {
-                            if (!(reader instanceof $Reader))
-                                reader = $Reader.create(reader);
-                            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.paddle.framework.proto.OpProto.Var();
-                            while (reader.pos < end) {
-                                var tag = reader.uint32();
-                                switch (tag >>> 3) {
-                                case 1:
-                                    message.name = reader.string();
-                                    break;
-                                case 2:
-                                    message.comment = reader.string();
-                                    break;
-                                case 3:
-                                    message.duplicable = reader.bool();
-                                    break;
-                                case 4:
-                                    message.intermediate = reader.bool();
-                                    break;
-                                case 5:
-                                    message.dispensable = reader.bool();
-                                    break;
-                                default:
-                                    reader.skipType(tag & 7);
-                                    break;
-                                }
-                            }
-                            if (!message.hasOwnProperty("name"))
-                                throw $util.ProtocolError("missing required 'name'", { instance: message });
-                            if (!message.hasOwnProperty("comment"))
-                                throw $util.ProtocolError("missing required 'comment'", { instance: message });
-                            return message;
-                        };
-    
-                        return Var;
-                    })();
-    
-                    OpProto.Attr = (function() {
-    
-                        function Attr(properties) {
-                            if (properties)
-                                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                                    if (properties[keys[i]] != null)
-                                        this[keys[i]] = properties[keys[i]];
-                        }
-    
-                        Attr.prototype.name = "";
-                        Attr.prototype.type = 0;
-                        Attr.prototype.comment = "";
-                        Attr.prototype.generated = false;
-    
-                        Attr.decode = function decode(reader, length) {
-                            if (!(reader instanceof $Reader))
-                                reader = $Reader.create(reader);
-                            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.paddle.framework.proto.OpProto.Attr();
-                            while (reader.pos < end) {
-                                var tag = reader.uint32();
-                                switch (tag >>> 3) {
-                                case 1:
-                                    message.name = reader.string();
-                                    break;
-                                case 2:
-                                    message.type = reader.int32();
-                                    break;
-                                case 3:
-                                    message.comment = reader.string();
-                                    break;
-                                case 4:
-                                    message.generated = reader.bool();
-                                    break;
-                                default:
-                                    reader.skipType(tag & 7);
-                                    break;
-                                }
-                            }
-                            if (!message.hasOwnProperty("name"))
-                                throw $util.ProtocolError("missing required 'name'", { instance: message });
-                            if (!message.hasOwnProperty("type"))
-                                throw $util.ProtocolError("missing required 'type'", { instance: message });
-                            if (!message.hasOwnProperty("comment"))
-                                throw $util.ProtocolError("missing required 'comment'", { instance: message });
-                            return message;
-                        };
-    
-                        return Attr;
-                    })();
-    
-                    return OpProto;
-                })();
-    
-                proto.VarType = (function() {
-    
-                    function VarType(properties) {
-                        if (properties)
-                            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                                if (properties[keys[i]] != null)
-                                    this[keys[i]] = properties[keys[i]];
-                    }
-    
-                    VarType.prototype.type = 0;
-                    VarType.prototype.selected_rows = null;
-                    VarType.prototype.lod_tensor = null;
-                    VarType.prototype.tensor_array = null;
-                    VarType.prototype.reader = null;
-                    VarType.prototype.tuple = null;
-    
-                    VarType.decode = function decode(reader, length) {
-                        if (!(reader instanceof $Reader))
-                            reader = $Reader.create(reader);
-                        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.paddle.framework.proto.VarType();
-                        while (reader.pos < end) {
-                            var tag = reader.uint32();
-                            switch (tag >>> 3) {
-                            case 1:
-                                message.type = reader.int32();
-                                break;
-                            case 2:
-                                message.selected_rows = $root.paddle.framework.proto.VarType.TensorDesc.decode(reader, reader.uint32());
-                                break;
-                            case 3:
-                                message.lod_tensor = $root.paddle.framework.proto.VarType.LoDTensorDesc.decode(reader, reader.uint32());
-                                break;
-                            case 4:
-                                message.tensor_array = $root.paddle.framework.proto.VarType.LoDTensorArrayDesc.decode(reader, reader.uint32());
-                                break;
-                            case 5:
-                                message.reader = $root.paddle.framework.proto.VarType.ReaderDesc.decode(reader, reader.uint32());
-                                break;
-                            case 7:
-                                message.tuple = $root.paddle.framework.proto.VarType.Tuple.decode(reader, reader.uint32());
-                                break;
-                            default:
-                                reader.skipType(tag & 7);
-                                break;
-                            }
-                        }
-                        if (!message.hasOwnProperty("type"))
-                            throw $util.ProtocolError("missing required 'type'", { instance: message });
-                        return message;
-                    };
-    
-                    VarType.Type = (function() {
-                        var valuesById = {}, values = Object.create(valuesById);
-                        values[valuesById[0] = "BOOL"] = 0;
-                        values[valuesById[1] = "INT16"] = 1;
-                        values[valuesById[2] = "INT32"] = 2;
-                        values[valuesById[3] = "INT64"] = 3;
-                        values[valuesById[4] = "FP16"] = 4;
-                        values[valuesById[5] = "FP32"] = 5;
-                        values[valuesById[6] = "FP64"] = 6;
-                        values[valuesById[19] = "SIZE_T"] = 19;
-                        values[valuesById[20] = "UINT8"] = 20;
-                        values[valuesById[21] = "INT8"] = 21;
-                        values[valuesById[7] = "LOD_TENSOR"] = 7;
-                        values[valuesById[8] = "SELECTED_ROWS"] = 8;
-                        values[valuesById[9] = "FEED_MINIBATCH"] = 9;
-                        values[valuesById[10] = "FETCH_LIST"] = 10;
-                        values[valuesById[11] = "STEP_SCOPES"] = 11;
-                        values[valuesById[12] = "LOD_RANK_TABLE"] = 12;
-                        values[valuesById[13] = "LOD_TENSOR_ARRAY"] = 13;
-                        values[valuesById[14] = "PLACE_LIST"] = 14;
-                        values[valuesById[15] = "READER"] = 15;
-                        values[valuesById[17] = "RAW"] = 17;
-                        values[valuesById[18] = "TUPLE"] = 18;
-                        return values;
-                    })();
-    
-                    VarType.TensorDesc = (function() {
-    
-                        function TensorDesc(properties) {
-                            this.dims = [];
-                            if (properties)
-                                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                                    if (properties[keys[i]] != null)
-                                        this[keys[i]] = properties[keys[i]];
-                        }
-    
-                        TensorDesc.prototype.data_type = 0;
-                        TensorDesc.prototype.dims = $util.emptyArray;
-    
-                        TensorDesc.decode = function decode(reader, length) {
-                            if (!(reader instanceof $Reader))
-                                reader = $Reader.create(reader);
-                            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.paddle.framework.proto.VarType.TensorDesc();
-                            while (reader.pos < end) {
-                                var tag = reader.uint32();
-                                switch (tag >>> 3) {
-                                case 1:
-                                    message.data_type = reader.int32();
-                                    break;
-                                case 2:
-                                    if (!(message.dims && message.dims.length))
-                                        message.dims = [];
-                                    if ((tag & 7) === 2) {
-                                        var end2 = reader.uint32() + reader.pos;
-                                        while (reader.pos < end2)
-                                            message.dims.push(reader.int64());
-                                    } else
-                                        message.dims.push(reader.int64());
-                                    break;
-                                default:
-                                    reader.skipType(tag & 7);
-                                    break;
-                                }
-                            }
-                            if (!message.hasOwnProperty("data_type"))
-                                throw $util.ProtocolError("missing required 'data_type'", { instance: message });
-                            return message;
-                        };
-    
-                        return TensorDesc;
-                    })();
-    
-                    VarType.LoDTensorDesc = (function() {
-    
-                        function LoDTensorDesc(properties) {
-                            if (properties)
-                                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                                    if (properties[keys[i]] != null)
-                                        this[keys[i]] = properties[keys[i]];
-                        }
-    
-                        LoDTensorDesc.prototype.tensor = null;
-                        LoDTensorDesc.prototype.lod_level = 0;
-    
-                        LoDTensorDesc.decode = function decode(reader, length) {
-                            if (!(reader instanceof $Reader))
-                                reader = $Reader.create(reader);
-                            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.paddle.framework.proto.VarType.LoDTensorDesc();
-                            while (reader.pos < end) {
-                                var tag = reader.uint32();
-                                switch (tag >>> 3) {
-                                case 1:
-                                    message.tensor = $root.paddle.framework.proto.VarType.TensorDesc.decode(reader, reader.uint32());
-                                    break;
-                                case 2:
-                                    message.lod_level = reader.int32();
-                                    break;
-                                default:
-                                    reader.skipType(tag & 7);
-                                    break;
-                                }
-                            }
-                            if (!message.hasOwnProperty("tensor"))
-                                throw $util.ProtocolError("missing required 'tensor'", { instance: message });
-                            return message;
-                        };
-    
-                        return LoDTensorDesc;
-                    })();
-    
-                    VarType.LoDTensorArrayDesc = (function() {
-    
-                        function LoDTensorArrayDesc(properties) {
-                            if (properties)
-                                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                                    if (properties[keys[i]] != null)
-                                        this[keys[i]] = properties[keys[i]];
-                        }
-    
-                        LoDTensorArrayDesc.prototype.tensor = null;
-                        LoDTensorArrayDesc.prototype.lod_level = 0;
-    
-                        LoDTensorArrayDesc.decode = function decode(reader, length) {
-                            if (!(reader instanceof $Reader))
-                                reader = $Reader.create(reader);
-                            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.paddle.framework.proto.VarType.LoDTensorArrayDesc();
-                            while (reader.pos < end) {
-                                var tag = reader.uint32();
-                                switch (tag >>> 3) {
-                                case 1:
-                                    message.tensor = $root.paddle.framework.proto.VarType.TensorDesc.decode(reader, reader.uint32());
-                                    break;
-                                case 2:
-                                    message.lod_level = reader.int32();
-                                    break;
-                                default:
-                                    reader.skipType(tag & 7);
-                                    break;
-                                }
-                            }
-                            if (!message.hasOwnProperty("tensor"))
-                                throw $util.ProtocolError("missing required 'tensor'", { instance: message });
-                            return message;
-                        };
-    
-                        return LoDTensorArrayDesc;
-                    })();
-    
-                    VarType.ReaderDesc = (function() {
-    
-                        function ReaderDesc(properties) {
-                            this.lod_tensor = [];
-                            if (properties)
-                                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                                    if (properties[keys[i]] != null)
-                                        this[keys[i]] = properties[keys[i]];
-                        }
-    
-                        ReaderDesc.prototype.lod_tensor = $util.emptyArray;
-    
-                        ReaderDesc.decode = function decode(reader, length) {
-                            if (!(reader instanceof $Reader))
-                                reader = $Reader.create(reader);
-                            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.paddle.framework.proto.VarType.ReaderDesc();
-                            while (reader.pos < end) {
-                                var tag = reader.uint32();
-                                switch (tag >>> 3) {
-                                case 1:
-                                    if (!(message.lod_tensor && message.lod_tensor.length))
-                                        message.lod_tensor = [];
-                                    message.lod_tensor.push($root.paddle.framework.proto.VarType.LoDTensorDesc.decode(reader, reader.uint32()));
-                                    break;
-                                default:
-                                    reader.skipType(tag & 7);
-                                    break;
-                                }
-                            }
-                            return message;
-                        };
-    
-                        return ReaderDesc;
-                    })();
-    
-                    VarType.Tuple = (function() {
-    
-                        function Tuple(properties) {
-                            this.element_type = [];
-                            if (properties)
-                                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                                    if (properties[keys[i]] != null)
-                                        this[keys[i]] = properties[keys[i]];
-                        }
-    
-                        Tuple.prototype.element_type = $util.emptyArray;
-    
-                        Tuple.decode = function decode(reader, length) {
-                            if (!(reader instanceof $Reader))
-                                reader = $Reader.create(reader);
-                            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.paddle.framework.proto.VarType.Tuple();
-                            while (reader.pos < end) {
-                                var tag = reader.uint32();
-                                switch (tag >>> 3) {
-                                case 1:
-                                    if (!(message.element_type && message.element_type.length))
-                                        message.element_type = [];
-                                    if ((tag & 7) === 2) {
-                                        var end2 = reader.uint32() + reader.pos;
-                                        while (reader.pos < end2)
-                                            message.element_type.push(reader.int32());
-                                    } else
-                                        message.element_type.push(reader.int32());
-                                    break;
-                                default:
-                                    reader.skipType(tag & 7);
-                                    break;
-                                }
-                            }
-                            return message;
-                        };
-    
-                        return Tuple;
-                    })();
-    
-                    return VarType;
-                })();
-    
-                proto.VarDesc = (function() {
-    
-                    function VarDesc(properties) {
-                        if (properties)
-                            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                                if (properties[keys[i]] != null)
-                                    this[keys[i]] = properties[keys[i]];
-                    }
-    
-                    VarDesc.prototype.name = "";
-                    VarDesc.prototype.type = null;
-                    VarDesc.prototype.persistable = false;
-                    VarDesc.prototype.need_check_feed = false;
-    
-                    VarDesc.decode = function decode(reader, length) {
-                        if (!(reader instanceof $Reader))
-                            reader = $Reader.create(reader);
-                        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.paddle.framework.proto.VarDesc();
-                        while (reader.pos < end) {
-                            var tag = reader.uint32();
-                            switch (tag >>> 3) {
-                            case 1:
-                                message.name = reader.string();
-                                break;
-                            case 2:
-                                message.type = $root.paddle.framework.proto.VarType.decode(reader, reader.uint32());
-                                break;
-                            case 3:
-                                message.persistable = reader.bool();
-                                break;
-                            case 4:
-                                message.need_check_feed = reader.bool();
-                                break;
-                            default:
-                                reader.skipType(tag & 7);
-                                break;
-                            }
-                        }
-                        if (!message.hasOwnProperty("name"))
-                            throw $util.ProtocolError("missing required 'name'", { instance: message });
-                        if (!message.hasOwnProperty("type"))
-                            throw $util.ProtocolError("missing required 'type'", { instance: message });
-                        return message;
-                    };
-    
-                    return VarDesc;
-                })();
-    
-                proto.BlockDesc = (function() {
-    
-                    function BlockDesc(properties) {
-                        this.vars = [];
-                        this.ops = [];
-                        if (properties)
-                            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                                if (properties[keys[i]] != null)
-                                    this[keys[i]] = properties[keys[i]];
-                    }
-    
-                    BlockDesc.prototype.idx = 0;
-                    BlockDesc.prototype.parent_idx = 0;
-                    BlockDesc.prototype.vars = $util.emptyArray;
-                    BlockDesc.prototype.ops = $util.emptyArray;
-                    BlockDesc.prototype.forward_block_idx = -1;
-    
-                    BlockDesc.decode = function decode(reader, length) {
-                        if (!(reader instanceof $Reader))
-                            reader = $Reader.create(reader);
-                        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.paddle.framework.proto.BlockDesc();
-                        while (reader.pos < end) {
-                            var tag = reader.uint32();
-                            switch (tag >>> 3) {
-                            case 1:
-                                message.idx = reader.int32();
-                                break;
-                            case 2:
-                                message.parent_idx = reader.int32();
-                                break;
-                            case 3:
-                                if (!(message.vars && message.vars.length))
-                                    message.vars = [];
-                                message.vars.push($root.paddle.framework.proto.VarDesc.decode(reader, reader.uint32()));
-                                break;
-                            case 4:
-                                if (!(message.ops && message.ops.length))
-                                    message.ops = [];
-                                message.ops.push($root.paddle.framework.proto.OpDesc.decode(reader, reader.uint32()));
-                                break;
-                            case 5:
-                                message.forward_block_idx = reader.int32();
-                                break;
-                            default:
-                                reader.skipType(tag & 7);
-                                break;
-                            }
-                        }
-                        if (!message.hasOwnProperty("idx"))
-                            throw $util.ProtocolError("missing required 'idx'", { instance: message });
-                        if (!message.hasOwnProperty("parent_idx"))
-                            throw $util.ProtocolError("missing required 'parent_idx'", { instance: message });
-                        return message;
-                    };
-    
-                    return BlockDesc;
-                })();
-    
-                proto.CompatibleInfo = (function() {
-    
-                    function CompatibleInfo(properties) {
-                        if (properties)
-                            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                                if (properties[keys[i]] != null)
-                                    this[keys[i]] = properties[keys[i]];
-                    }
-    
-                    CompatibleInfo.prototype.version = "";
-                    CompatibleInfo.prototype.type = 0;
-    
-                    CompatibleInfo.decode = function decode(reader, length) {
-                        if (!(reader instanceof $Reader))
-                            reader = $Reader.create(reader);
-                        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.paddle.framework.proto.CompatibleInfo();
-                        while (reader.pos < end) {
-                            var tag = reader.uint32();
-                            switch (tag >>> 3) {
-                            case 1:
-                                message.version = reader.string();
-                                break;
-                            case 2:
-                                message.type = reader.int32();
-                                break;
-                            default:
-                                reader.skipType(tag & 7);
-                                break;
-                            }
-                        }
-                        if (!message.hasOwnProperty("version"))
-                            throw $util.ProtocolError("missing required 'version'", { instance: message });
-                        if (!message.hasOwnProperty("type"))
-                            throw $util.ProtocolError("missing required 'type'", { instance: message });
-                        return message;
-                    };
-    
-                    CompatibleInfo.Type = (function() {
-                        var valuesById = {}, values = Object.create(valuesById);
-                        values[valuesById[0] = "COMPATIBLE"] = 0;
-                        values[valuesById[1] = "DEFINITELY_NOT"] = 1;
-                        values[valuesById[2] = "POSSIBLE"] = 2;
-                        values[valuesById[3] = "BUG_FIX"] = 3;
-                        values[valuesById[4] = "PRECISION_CHANGE"] = 4;
-                        return values;
-                    })();
-    
-                    return CompatibleInfo;
-                })();
-    
-                proto.OpCompatibleMap = (function() {
-    
-                    function OpCompatibleMap(properties) {
-                        this.pair = [];
-                        if (properties)
-                            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                                if (properties[keys[i]] != null)
-                                    this[keys[i]] = properties[keys[i]];
-                    }
-    
-                    OpCompatibleMap.prototype.pair = $util.emptyArray;
-                    OpCompatibleMap.prototype.default_required_version = "";
-    
-                    OpCompatibleMap.decode = function decode(reader, length) {
-                        if (!(reader instanceof $Reader))
-                            reader = $Reader.create(reader);
-                        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.paddle.framework.proto.OpCompatibleMap();
-                        while (reader.pos < end) {
-                            var tag = reader.uint32();
-                            switch (tag >>> 3) {
-                            case 1:
-                                if (!(message.pair && message.pair.length))
-                                    message.pair = [];
-                                message.pair.push($root.paddle.framework.proto.OpCompatibleMap.OpCompatiblePair.decode(reader, reader.uint32()));
-                                break;
-                            case 2:
-                                message.default_required_version = reader.string();
-                                break;
-                            default:
-                                reader.skipType(tag & 7);
-                                break;
-                            }
-                        }
-                        return message;
-                    };
-    
-                    OpCompatibleMap.OpCompatiblePair = (function() {
-    
-                        function OpCompatiblePair(properties) {
-                            if (properties)
-                                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                                    if (properties[keys[i]] != null)
-                                        this[keys[i]] = properties[keys[i]];
-                        }
-    
-                        OpCompatiblePair.prototype.op_name = "";
-                        OpCompatiblePair.prototype.compatible_info = null;
-    
-                        OpCompatiblePair.decode = function decode(reader, length) {
-                            if (!(reader instanceof $Reader))
-                                reader = $Reader.create(reader);
-                            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.paddle.framework.proto.OpCompatibleMap.OpCompatiblePair();
-                            while (reader.pos < end) {
-                                var tag = reader.uint32();
-                                switch (tag >>> 3) {
-                                case 1:
-                                    message.op_name = reader.string();
-                                    break;
-                                case 2:
-                                    message.compatible_info = $root.paddle.framework.proto.CompatibleInfo.decode(reader, reader.uint32());
-                                    break;
-                                default:
-                                    reader.skipType(tag & 7);
-                                    break;
-                                }
-                            }
-                            if (!message.hasOwnProperty("op_name"))
-                                throw $util.ProtocolError("missing required 'op_name'", { instance: message });
-                            if (!message.hasOwnProperty("compatible_info"))
-                                throw $util.ProtocolError("missing required 'compatible_info'", { instance: message });
-                            return message;
-                        };
-    
-                        return OpCompatiblePair;
-                    })();
-    
-                    return OpCompatibleMap;
-                })();
-    
-                proto.ProgramDesc = (function() {
-    
-                    function ProgramDesc(properties) {
-                        this.blocks = [];
-                        if (properties)
-                            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                                if (properties[keys[i]] != null)
-                                    this[keys[i]] = properties[keys[i]];
-                    }
-    
-                    ProgramDesc.prototype.blocks = $util.emptyArray;
-                    ProgramDesc.prototype.version = null;
-                    ProgramDesc.prototype.op_compatible_map = null;
-    
-                    ProgramDesc.decode = function decode(reader, length) {
-                        if (!(reader instanceof $Reader))
-                            reader = $Reader.create(reader);
-                        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.paddle.framework.proto.ProgramDesc();
-                        while (reader.pos < end) {
-                            var tag = reader.uint32();
-                            switch (tag >>> 3) {
-                            case 1:
-                                if (!(message.blocks && message.blocks.length))
-                                    message.blocks = [];
-                                message.blocks.push($root.paddle.framework.proto.BlockDesc.decode(reader, reader.uint32()));
-                                break;
-                            case 4:
-                                message.version = $root.paddle.framework.proto.Version.decode(reader, reader.uint32());
-                                break;
-                            case 3:
-                                message.op_compatible_map = $root.paddle.framework.proto.OpCompatibleMap.decode(reader, reader.uint32());
-                                break;
-                            default:
-                                reader.skipType(tag & 7);
-                                break;
-                            }
-                        }
-                        return message;
-                    };
-    
-                    return ProgramDesc;
-                })();
-    
-                return proto;
-            })();
-    
-            return framework;
-        })();
-    
-        return paddle;
-    })();
+export const paddle = {};
 
-    return $root;
-})(protobuf);
+paddle.framework = {};
+
+paddle.framework.proto = {};
+
+paddle.framework.proto.Version = class Version {
+
+    static decode(reader, length) {
+        const message = new paddle.framework.proto.Version();
+        const end = length === undefined ? reader.length : reader.position + length;
+        while (reader.position < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    message.version = reader.int64();
+                    break;
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+            }
+        }
+        return message;
+    }
+
+    static decodeText(reader) {
+        const message = new paddle.framework.proto.Version();
+        reader.start();
+        while (!reader.end()) {
+            const tag = reader.tag();
+            switch (tag) {
+                case "version":
+                    message.version = reader.int64();
+                    break;
+                default:
+                    reader.field(tag, message);
+                    break;
+            }
+        }
+        return message;
+    }
+};
+
+paddle.framework.proto.Version.prototype.version = 0n;
+
+paddle.framework.proto.AttrType = {
+    "INT": 0,
+    "FLOAT": 1,
+    "STRING": 2,
+    "INTS": 3,
+    "FLOATS": 4,
+    "STRINGS": 5,
+    "BOOLEAN": 6,
+    "BOOLEANS": 7,
+    "BLOCK": 8,
+    "LONG": 9,
+    "BLOCKS": 10,
+    "LONGS": 11,
+    "FLOAT64S": 12,
+    "VAR": 13,
+    "VARS": 14,
+    "FLOAT64": 15,
+    "SCALAR": 16,
+    "SCALARS": 17
+};
+
+paddle.framework.proto.Complex = class Complex {
+
+    static decode(reader, length) {
+        const message = new paddle.framework.proto.Complex();
+        const end = length === undefined ? reader.length : reader.position + length;
+        while (reader.position < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    message.r = reader.double();
+                    break;
+                case 2:
+                    message.i = reader.double();
+                    break;
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+            }
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, 'r')) {
+            throw new Error("Excepted 'r'.");
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, 'i')) {
+            throw new Error("Excepted 'i'.");
+        }
+        return message;
+    }
+
+    static decodeText(reader) {
+        const message = new paddle.framework.proto.Complex();
+        reader.start();
+        while (!reader.end()) {
+            const tag = reader.tag();
+            switch (tag) {
+                case "r":
+                    message.r = reader.double();
+                    break;
+                case "i":
+                    message.i = reader.double();
+                    break;
+                default:
+                    reader.field(tag, message);
+                    break;
+            }
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, "r")) {
+            throw new Error("Excepted 'r'.");
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, "i")) {
+            throw new Error("Excepted 'i'.");
+        }
+        return message;
+    }
+};
+
+paddle.framework.proto.Complex.prototype.r = 0;
+paddle.framework.proto.Complex.prototype.i = 0;
+
+paddle.framework.proto.Scalar = class Scalar {
+
+    static decode(reader, length) {
+        const message = new paddle.framework.proto.Scalar();
+        const end = length === undefined ? reader.length : reader.position + length;
+        while (reader.position < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    message.type = reader.int32();
+                    break;
+                case 2:
+                    message.b = reader.bool();
+                    break;
+                case 3:
+                    message.i = reader.int64();
+                    break;
+                case 4:
+                    message.r = reader.double();
+                    break;
+                case 5:
+                    message.c = paddle.framework.proto.Complex.decode(reader, reader.uint32());
+                    break;
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+            }
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, 'type')) {
+            throw new Error("Excepted 'type'.");
+        }
+        return message;
+    }
+
+    static decodeText(reader) {
+        const message = new paddle.framework.proto.Scalar();
+        reader.start();
+        while (!reader.end()) {
+            const tag = reader.tag();
+            switch (tag) {
+                case "type":
+                    message.type = reader.enum(paddle.framework.proto.Scalar.Type);
+                    break;
+                case "b":
+                    message.b = reader.bool();
+                    break;
+                case "i":
+                    message.i = reader.int64();
+                    break;
+                case "r":
+                    message.r = reader.double();
+                    break;
+                case "c":
+                    message.c = paddle.framework.proto.Complex.decodeText(reader);
+                    break;
+                default:
+                    reader.field(tag, message);
+                    break;
+            }
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, "type")) {
+            throw new Error("Excepted 'type'.");
+        }
+        return message;
+    }
+};
+
+paddle.framework.proto.Scalar.prototype.type = 1;
+paddle.framework.proto.Scalar.prototype.b = false;
+paddle.framework.proto.Scalar.prototype.i = 0n;
+paddle.framework.proto.Scalar.prototype.r = 0;
+paddle.framework.proto.Scalar.prototype.c = null;
+
+paddle.framework.proto.Scalar.Type = {
+    "BOOLEAN": 1,
+    "LONG": 2,
+    "FLOAT64": 3,
+    "COMPLEX128": 4
+};
+
+paddle.framework.proto.OpDesc = class OpDesc {
+
+    constructor() {
+        this.inputs = [];
+        this.outputs = [];
+        this.attrs = [];
+    }
+
+    static decode(reader, length) {
+        const message = new paddle.framework.proto.OpDesc();
+        const end = length === undefined ? reader.length : reader.position + length;
+        while (reader.position < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 3:
+                    message.type = reader.string();
+                    break;
+                case 1:
+                    message.inputs.push(paddle.framework.proto.OpDesc.Var.decode(reader, reader.uint32()));
+                    break;
+                case 2:
+                    message.outputs.push(paddle.framework.proto.OpDesc.Var.decode(reader, reader.uint32()));
+                    break;
+                case 4:
+                    message.attrs.push(paddle.framework.proto.OpDesc.Attr.decode(reader, reader.uint32()));
+                    break;
+                case 5:
+                    message.is_target = reader.bool();
+                    break;
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+            }
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, 'type')) {
+            throw new Error("Excepted 'type'.");
+        }
+        return message;
+    }
+
+    static decodeText(reader) {
+        const message = new paddle.framework.proto.OpDesc();
+        reader.start();
+        while (!reader.end()) {
+            const tag = reader.tag();
+            switch (tag) {
+                case "type":
+                    message.type = reader.string();
+                    break;
+                case "inputs":
+                    message.inputs.push(paddle.framework.proto.OpDesc.Var.decodeText(reader));
+                    break;
+                case "outputs":
+                    message.outputs.push(paddle.framework.proto.OpDesc.Var.decodeText(reader));
+                    break;
+                case "attrs":
+                    message.attrs.push(paddle.framework.proto.OpDesc.Attr.decodeText(reader));
+                    break;
+                case "is_target":
+                    message.is_target = reader.bool();
+                    break;
+                default:
+                    reader.field(tag, message);
+                    break;
+            }
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, "type")) {
+            throw new Error("Excepted 'type'.");
+        }
+        return message;
+    }
+};
+
+paddle.framework.proto.OpDesc.prototype.type = "";
+paddle.framework.proto.OpDesc.prototype.is_target = false;
+
+paddle.framework.proto.OpDesc.Attr = class Attr {
+
+    constructor() {
+        this.ints = [];
+        this.floats = [];
+        this.strings = [];
+        this.bools = [];
+        this.blocks_idx = [];
+        this.longs = [];
+        this.float64s = [];
+        this.vars_name = [];
+        this.scalars = [];
+    }
+
+    static decode(reader, length) {
+        const message = new paddle.framework.proto.OpDesc.Attr();
+        const end = length === undefined ? reader.length : reader.position + length;
+        while (reader.position < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    message.name = reader.string();
+                    break;
+                case 2:
+                    message.type = reader.int32();
+                    break;
+                case 3:
+                    message.i = reader.int32();
+                    break;
+                case 4:
+                    message.f = reader.float();
+                    break;
+                case 5:
+                    message.s = reader.string();
+                    break;
+                case 6:
+                    message.ints = reader.array(message.ints, () => reader.int32(), tag);
+                    break;
+                case 7:
+                    message.floats = reader.floats(message.floats, tag);
+                    break;
+                case 8:
+                    message.strings.push(reader.string());
+                    break;
+                case 10:
+                    message.b = reader.bool();
+                    break;
+                case 11:
+                    message.bools = reader.array(message.bools, () => reader.bool(), tag);
+                    break;
+                case 12:
+                    message.block_idx = reader.int32();
+                    break;
+                case 13:
+                    message.l = reader.int64();
+                    break;
+                case 14:
+                    message.blocks_idx = reader.array(message.blocks_idx, () => reader.int32(), tag);
+                    break;
+                case 15:
+                    message.longs = reader.array(message.longs, () => reader.int64(), tag);
+                    break;
+                case 16:
+                    message.float64s = reader.doubles(message.float64s, tag);
+                    break;
+                case 17:
+                    message.var_name = reader.string();
+                    break;
+                case 18:
+                    message.vars_name.push(reader.string());
+                    break;
+                case 19:
+                    message.float64 = reader.double();
+                    break;
+                case 20:
+                    message.scalar = paddle.framework.proto.Scalar.decode(reader, reader.uint32());
+                    break;
+                case 21:
+                    message.scalars.push(paddle.framework.proto.Scalar.decode(reader, reader.uint32()));
+                    break;
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+            }
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, 'name')) {
+            throw new Error("Excepted 'name'.");
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, 'type')) {
+            throw new Error("Excepted 'type'.");
+        }
+        return message;
+    }
+
+    static decodeText(reader) {
+        const message = new paddle.framework.proto.OpDesc.Attr();
+        reader.start();
+        while (!reader.end()) {
+            const tag = reader.tag();
+            switch (tag) {
+                case "name":
+                    message.name = reader.string();
+                    break;
+                case "type":
+                    message.type = reader.enum(paddle.framework.proto.AttrType);
+                    break;
+                case "i":
+                    message.i = reader.int32();
+                    break;
+                case "f":
+                    message.f = reader.float();
+                    break;
+                case "s":
+                    message.s = reader.string();
+                    break;
+                case "ints":
+                    reader.array(message.ints, () => reader.int32());
+                    break;
+                case "floats":
+                    reader.array(message.floats, () => reader.float());
+                    break;
+                case "strings":
+                    reader.array(message.strings, () => reader.string());
+                    break;
+                case "b":
+                    message.b = reader.bool();
+                    break;
+                case "bools":
+                    reader.array(message.bools, () => reader.bool());
+                    break;
+                case "block_idx":
+                    message.block_idx = reader.int32();
+                    break;
+                case "l":
+                    message.l = reader.int64();
+                    break;
+                case "blocks_idx":
+                    reader.array(message.blocks_idx, () => reader.int32());
+                    break;
+                case "longs":
+                    reader.array(message.longs, () => reader.int64());
+                    break;
+                case "float64s":
+                    reader.array(message.float64s, () => reader.double());
+                    break;
+                case "var_name":
+                    message.var_name = reader.string();
+                    break;
+                case "vars_name":
+                    reader.array(message.vars_name, () => reader.string());
+                    break;
+                case "float64":
+                    message.float64 = reader.double();
+                    break;
+                case "scalar":
+                    message.scalar = paddle.framework.proto.Scalar.decodeText(reader);
+                    break;
+                case "scalars":
+                    message.scalars.push(paddle.framework.proto.Scalar.decodeText(reader));
+                    break;
+                default:
+                    reader.field(tag, message);
+                    break;
+            }
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, "name")) {
+            throw new Error("Excepted 'name'.");
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, "type")) {
+            throw new Error("Excepted 'type'.");
+        }
+        return message;
+    }
+};
+
+paddle.framework.proto.OpDesc.Attr.prototype.name = "";
+paddle.framework.proto.OpDesc.Attr.prototype.type = 0;
+paddle.framework.proto.OpDesc.Attr.prototype.i = 0;
+paddle.framework.proto.OpDesc.Attr.prototype.f = 0;
+paddle.framework.proto.OpDesc.Attr.prototype.s = "";
+paddle.framework.proto.OpDesc.Attr.prototype.b = false;
+paddle.framework.proto.OpDesc.Attr.prototype.block_idx = 0;
+paddle.framework.proto.OpDesc.Attr.prototype.l = 0n;
+paddle.framework.proto.OpDesc.Attr.prototype.var_name = "";
+paddle.framework.proto.OpDesc.Attr.prototype.float64 = 0;
+paddle.framework.proto.OpDesc.Attr.prototype.scalar = null;
+
+paddle.framework.proto.OpDesc.Var = class Var {
+
+    constructor() {
+        this.arguments = [];
+    }
+
+    static decode(reader, length) {
+        const message = new paddle.framework.proto.OpDesc.Var();
+        const end = length === undefined ? reader.length : reader.position + length;
+        while (reader.position < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    message.parameter = reader.string();
+                    break;
+                case 2:
+                    message.arguments.push(reader.string());
+                    break;
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+            }
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, 'parameter')) {
+            throw new Error("Excepted 'parameter'.");
+        }
+        return message;
+    }
+
+    static decodeText(reader) {
+        const message = new paddle.framework.proto.OpDesc.Var();
+        reader.start();
+        while (!reader.end()) {
+            const tag = reader.tag();
+            switch (tag) {
+                case "parameter":
+                    message.parameter = reader.string();
+                    break;
+                case "arguments":
+                    reader.array(message.arguments, () => reader.string());
+                    break;
+                default:
+                    reader.field(tag, message);
+                    break;
+            }
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, "parameter")) {
+            throw new Error("Excepted 'parameter'.");
+        }
+        return message;
+    }
+};
+
+paddle.framework.proto.OpDesc.Var.prototype.parameter = "";
+
+paddle.framework.proto.OpProto = class OpProto {
+
+    constructor() {
+        this.inputs = [];
+        this.outputs = [];
+        this.attrs = [];
+    }
+
+    static decode(reader, length) {
+        const message = new paddle.framework.proto.OpProto();
+        const end = length === undefined ? reader.length : reader.position + length;
+        while (reader.position < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    message.type = reader.string();
+                    break;
+                case 2:
+                    message.inputs.push(paddle.framework.proto.OpProto.Var.decode(reader, reader.uint32()));
+                    break;
+                case 3:
+                    message.outputs.push(paddle.framework.proto.OpProto.Var.decode(reader, reader.uint32()));
+                    break;
+                case 4:
+                    message.attrs.push(paddle.framework.proto.OpProto.Attr.decode(reader, reader.uint32()));
+                    break;
+                case 5:
+                    message.comment = reader.string();
+                    break;
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+            }
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, 'type')) {
+            throw new Error("Excepted 'type'.");
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, 'comment')) {
+            throw new Error("Excepted 'comment'.");
+        }
+        return message;
+    }
+
+    static decodeText(reader) {
+        const message = new paddle.framework.proto.OpProto();
+        reader.start();
+        while (!reader.end()) {
+            const tag = reader.tag();
+            switch (tag) {
+                case "type":
+                    message.type = reader.string();
+                    break;
+                case "inputs":
+                    message.inputs.push(paddle.framework.proto.OpProto.Var.decodeText(reader));
+                    break;
+                case "outputs":
+                    message.outputs.push(paddle.framework.proto.OpProto.Var.decodeText(reader));
+                    break;
+                case "attrs":
+                    message.attrs.push(paddle.framework.proto.OpProto.Attr.decodeText(reader));
+                    break;
+                case "comment":
+                    message.comment = reader.string();
+                    break;
+                default:
+                    reader.field(tag, message);
+                    break;
+            }
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, "type")) {
+            throw new Error("Excepted 'type'.");
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, "comment")) {
+            throw new Error("Excepted 'comment'.");
+        }
+        return message;
+    }
+};
+
+paddle.framework.proto.OpProto.prototype.type = "";
+paddle.framework.proto.OpProto.prototype.comment = "";
+
+paddle.framework.proto.OpProto.Var = class Var {
+
+    static decode(reader, length) {
+        const message = new paddle.framework.proto.OpProto.Var();
+        const end = length === undefined ? reader.length : reader.position + length;
+        while (reader.position < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    message.name = reader.string();
+                    break;
+                case 2:
+                    message.comment = reader.string();
+                    break;
+                case 3:
+                    message.duplicable = reader.bool();
+                    break;
+                case 4:
+                    message.intermediate = reader.bool();
+                    break;
+                case 5:
+                    message.dispensable = reader.bool();
+                    break;
+                case 6:
+                    message.extra = reader.bool();
+                    break;
+                case 7:
+                    message.quant = reader.bool();
+                    break;
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+            }
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, 'name')) {
+            throw new Error("Excepted 'name'.");
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, 'comment')) {
+            throw new Error("Excepted 'comment'.");
+        }
+        return message;
+    }
+
+    static decodeText(reader) {
+        const message = new paddle.framework.proto.OpProto.Var();
+        reader.start();
+        while (!reader.end()) {
+            const tag = reader.tag();
+            switch (tag) {
+                case "name":
+                    message.name = reader.string();
+                    break;
+                case "comment":
+                    message.comment = reader.string();
+                    break;
+                case "duplicable":
+                    message.duplicable = reader.bool();
+                    break;
+                case "intermediate":
+                    message.intermediate = reader.bool();
+                    break;
+                case "dispensable":
+                    message.dispensable = reader.bool();
+                    break;
+                case "extra":
+                    message.extra = reader.bool();
+                    break;
+                case "quant":
+                    message.quant = reader.bool();
+                    break;
+                default:
+                    reader.field(tag, message);
+                    break;
+            }
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, "name")) {
+            throw new Error("Excepted 'name'.");
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, "comment")) {
+            throw new Error("Excepted 'comment'.");
+        }
+        return message;
+    }
+};
+
+paddle.framework.proto.OpProto.Var.prototype.name = "";
+paddle.framework.proto.OpProto.Var.prototype.comment = "";
+paddle.framework.proto.OpProto.Var.prototype.duplicable = false;
+paddle.framework.proto.OpProto.Var.prototype.intermediate = false;
+paddle.framework.proto.OpProto.Var.prototype.dispensable = false;
+paddle.framework.proto.OpProto.Var.prototype.extra = false;
+paddle.framework.proto.OpProto.Var.prototype.quant = false;
+
+paddle.framework.proto.OpProto.Attr = class Attr {
+
+    static decode(reader, length) {
+        const message = new paddle.framework.proto.OpProto.Attr();
+        const end = length === undefined ? reader.length : reader.position + length;
+        while (reader.position < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    message.name = reader.string();
+                    break;
+                case 2:
+                    message.type = reader.int32();
+                    break;
+                case 3:
+                    message.comment = reader.string();
+                    break;
+                case 4:
+                    message.generated = reader.bool();
+                    break;
+                case 5:
+                    message.extra = reader.bool();
+                    break;
+                case 6:
+                    message.quant = reader.bool();
+                    break;
+                case 7:
+                    message.support_tensor = reader.bool();
+                    break;
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+            }
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, 'name')) {
+            throw new Error("Excepted 'name'.");
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, 'type')) {
+            throw new Error("Excepted 'type'.");
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, 'comment')) {
+            throw new Error("Excepted 'comment'.");
+        }
+        return message;
+    }
+
+    static decodeText(reader) {
+        const message = new paddle.framework.proto.OpProto.Attr();
+        reader.start();
+        while (!reader.end()) {
+            const tag = reader.tag();
+            switch (tag) {
+                case "name":
+                    message.name = reader.string();
+                    break;
+                case "type":
+                    message.type = reader.enum(paddle.framework.proto.AttrType);
+                    break;
+                case "comment":
+                    message.comment = reader.string();
+                    break;
+                case "generated":
+                    message.generated = reader.bool();
+                    break;
+                case "extra":
+                    message.extra = reader.bool();
+                    break;
+                case "quant":
+                    message.quant = reader.bool();
+                    break;
+                case "support_tensor":
+                    message.support_tensor = reader.bool();
+                    break;
+                default:
+                    reader.field(tag, message);
+                    break;
+            }
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, "name")) {
+            throw new Error("Excepted 'name'.");
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, "type")) {
+            throw new Error("Excepted 'type'.");
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, "comment")) {
+            throw new Error("Excepted 'comment'.");
+        }
+        return message;
+    }
+};
+
+paddle.framework.proto.OpProto.Attr.prototype.name = "";
+paddle.framework.proto.OpProto.Attr.prototype.type = 0;
+paddle.framework.proto.OpProto.Attr.prototype.comment = "";
+paddle.framework.proto.OpProto.Attr.prototype.generated = false;
+paddle.framework.proto.OpProto.Attr.prototype.extra = false;
+paddle.framework.proto.OpProto.Attr.prototype.quant = false;
+paddle.framework.proto.OpProto.Attr.prototype.support_tensor = false;
+
+paddle.framework.proto.VarType = class VarType {
+
+    static decode(reader, length) {
+        const message = new paddle.framework.proto.VarType();
+        const end = length === undefined ? reader.length : reader.position + length;
+        while (reader.position < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    message.type = reader.int32();
+                    break;
+                case 2:
+                    message.selected_rows = paddle.framework.proto.VarType.TensorDesc.decode(reader, reader.uint32());
+                    break;
+                case 3:
+                    message.dense_tensor = paddle.framework.proto.VarType.DenseTensorDesc.decode(reader, reader.uint32());
+                    break;
+                case 4:
+                    message.tensor_array = paddle.framework.proto.VarType.DenseTensorArrayDesc.decode(reader, reader.uint32());
+                    break;
+                case 5:
+                    message.reader = paddle.framework.proto.VarType.ReaderDesc.decode(reader, reader.uint32());
+                    break;
+                case 7:
+                    message.tuple = paddle.framework.proto.VarType.Tuple.decode(reader, reader.uint32());
+                    break;
+                case 8:
+                    message.string = paddle.framework.proto.VarType.TensorDesc.decode(reader, reader.uint32());
+                    break;
+                case 9:
+                    message.strings = paddle.framework.proto.VarType.TensorDesc.decode(reader, reader.uint32());
+                    break;
+                case 10:
+                    message.vocab = paddle.framework.proto.VarType.TensorDesc.decode(reader, reader.uint32());
+                    break;
+                case 11:
+                    message.sparse_coo = paddle.framework.proto.VarType.TensorDesc.decode(reader, reader.uint32());
+                    break;
+                case 12:
+                    message.sparse_csr = paddle.framework.proto.VarType.TensorDesc.decode(reader, reader.uint32());
+                    break;
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+            }
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, 'type')) {
+            throw new Error("Excepted 'type'.");
+        }
+        return message;
+    }
+
+    static decodeText(reader) {
+        const message = new paddle.framework.proto.VarType();
+        reader.start();
+        while (!reader.end()) {
+            const tag = reader.tag();
+            switch (tag) {
+                case "type":
+                    message.type = reader.enum(paddle.framework.proto.VarType.Type);
+                    break;
+                case "selected_rows":
+                    message.selected_rows = paddle.framework.proto.VarType.TensorDesc.decodeText(reader);
+                    break;
+                case "dense_tensor":
+                    message.dense_tensor = paddle.framework.proto.VarType.DenseTensorDesc.decodeText(reader);
+                    break;
+                case "tensor_array":
+                    message.tensor_array = paddle.framework.proto.VarType.DenseTensorArrayDesc.decodeText(reader);
+                    break;
+                case "reader":
+                    message.reader = paddle.framework.proto.VarType.ReaderDesc.decodeText(reader);
+                    break;
+                case "tuple":
+                    message.tuple = paddle.framework.proto.VarType.Tuple.decodeText(reader);
+                    break;
+                case "string":
+                    message.string = paddle.framework.proto.VarType.TensorDesc.decodeText(reader);
+                    break;
+                case "strings":
+                    message.strings = paddle.framework.proto.VarType.TensorDesc.decodeText(reader);
+                    break;
+                case "vocab":
+                    message.vocab = paddle.framework.proto.VarType.TensorDesc.decodeText(reader);
+                    break;
+                case "sparse_coo":
+                    message.sparse_coo = paddle.framework.proto.VarType.TensorDesc.decodeText(reader);
+                    break;
+                case "sparse_csr":
+                    message.sparse_csr = paddle.framework.proto.VarType.TensorDesc.decodeText(reader);
+                    break;
+                default:
+                    reader.field(tag, message);
+                    break;
+            }
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, "type")) {
+            throw new Error("Excepted 'type'.");
+        }
+        return message;
+    }
+};
+
+paddle.framework.proto.VarType.prototype.type = 0;
+paddle.framework.proto.VarType.prototype.selected_rows = null;
+paddle.framework.proto.VarType.prototype.dense_tensor = null;
+paddle.framework.proto.VarType.prototype.tensor_array = null;
+paddle.framework.proto.VarType.prototype.reader = null;
+paddle.framework.proto.VarType.prototype.tuple = null;
+paddle.framework.proto.VarType.prototype.string = null;
+paddle.framework.proto.VarType.prototype.strings = null;
+paddle.framework.proto.VarType.prototype.vocab = null;
+paddle.framework.proto.VarType.prototype.sparse_coo = null;
+paddle.framework.proto.VarType.prototype.sparse_csr = null;
+
+paddle.framework.proto.VarType.Type = {
+    "BOOL": 0,
+    "INT16": 1,
+    "INT32": 2,
+    "INT64": 3,
+    "FP16": 4,
+    "FP32": 5,
+    "FP64": 6,
+    "SIZE_T": 19,
+    "UINT8": 20,
+    "INT8": 21,
+    "BF16": 22,
+    "COMPLEX64": 23,
+    "COMPLEX128": 24,
+    "FP8_E4M3FN": 32,
+    "FP8_E5M2": 33,
+    "DENSE_TENSOR": 7,
+    "SELECTED_ROWS": 8,
+    "FEED_MINIBATCH": 9,
+    "FETCH_LIST": 10,
+    "STEP_SCOPES": 11,
+    "LOD_RANK_TABLE": 12,
+    "DENSE_TENSOR_ARRAY": 13,
+    "PLACE_LIST": 14,
+    "READER": 15,
+    "RAW": 17,
+    "TUPLE": 18,
+    "STRING": 25,
+    "STRINGS": 26,
+    "VOCAB": 27,
+    "FEED_LIST": 28,
+    "PSTRING": 29,
+    "SPARSE_COO": 30,
+    "SPARSE_CSR": 31
+};
+
+paddle.framework.proto.VarType.TensorDesc = class TensorDesc {
+
+    constructor() {
+        this.dims = [];
+    }
+
+    static decode(reader, length) {
+        const message = new paddle.framework.proto.VarType.TensorDesc();
+        const end = length === undefined ? reader.length : reader.position + length;
+        while (reader.position < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    message.data_type = reader.int32();
+                    break;
+                case 2:
+                    message.dims = reader.array(message.dims, () => reader.int64(), tag);
+                    break;
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+            }
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, 'data_type')) {
+            throw new Error("Excepted 'data_type'.");
+        }
+        return message;
+    }
+
+    static decodeText(reader) {
+        const message = new paddle.framework.proto.VarType.TensorDesc();
+        reader.start();
+        while (!reader.end()) {
+            const tag = reader.tag();
+            switch (tag) {
+                case "data_type":
+                    message.data_type = reader.enum(paddle.framework.proto.VarType.Type);
+                    break;
+                case "dims":
+                    reader.array(message.dims, () => reader.int64());
+                    break;
+                default:
+                    reader.field(tag, message);
+                    break;
+            }
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, "data_type")) {
+            throw new Error("Excepted 'data_type'.");
+        }
+        return message;
+    }
+};
+
+paddle.framework.proto.VarType.TensorDesc.prototype.data_type = 0;
+
+paddle.framework.proto.VarType.DenseTensorDesc = class DenseTensorDesc {
+
+    static decode(reader, length) {
+        const message = new paddle.framework.proto.VarType.DenseTensorDesc();
+        const end = length === undefined ? reader.length : reader.position + length;
+        while (reader.position < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    message.tensor = paddle.framework.proto.VarType.TensorDesc.decode(reader, reader.uint32());
+                    break;
+                case 2:
+                    message.legacy_lod_level = reader.int32();
+                    break;
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+            }
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, 'tensor')) {
+            throw new Error("Excepted 'tensor'.");
+        }
+        return message;
+    }
+
+    static decodeText(reader) {
+        const message = new paddle.framework.proto.VarType.DenseTensorDesc();
+        reader.start();
+        while (!reader.end()) {
+            const tag = reader.tag();
+            switch (tag) {
+                case "tensor":
+                    message.tensor = paddle.framework.proto.VarType.TensorDesc.decodeText(reader);
+                    break;
+                case "legacy_lod_level":
+                    message.legacy_lod_level = reader.int32();
+                    break;
+                default:
+                    reader.field(tag, message);
+                    break;
+            }
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, "tensor")) {
+            throw new Error("Excepted 'tensor'.");
+        }
+        return message;
+    }
+};
+
+paddle.framework.proto.VarType.DenseTensorDesc.prototype.tensor = null;
+paddle.framework.proto.VarType.DenseTensorDesc.prototype.legacy_lod_level = 0;
+
+paddle.framework.proto.VarType.DenseTensorArrayDesc = class DenseTensorArrayDesc {
+
+    static decode(reader, length) {
+        const message = new paddle.framework.proto.VarType.DenseTensorArrayDesc();
+        const end = length === undefined ? reader.length : reader.position + length;
+        while (reader.position < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    message.tensor = paddle.framework.proto.VarType.TensorDesc.decode(reader, reader.uint32());
+                    break;
+                case 2:
+                    message.legacy_lod_level = reader.int32();
+                    break;
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+            }
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, 'tensor')) {
+            throw new Error("Excepted 'tensor'.");
+        }
+        return message;
+    }
+
+    static decodeText(reader) {
+        const message = new paddle.framework.proto.VarType.DenseTensorArrayDesc();
+        reader.start();
+        while (!reader.end()) {
+            const tag = reader.tag();
+            switch (tag) {
+                case "tensor":
+                    message.tensor = paddle.framework.proto.VarType.TensorDesc.decodeText(reader);
+                    break;
+                case "legacy_lod_level":
+                    message.legacy_lod_level = reader.int32();
+                    break;
+                default:
+                    reader.field(tag, message);
+                    break;
+            }
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, "tensor")) {
+            throw new Error("Excepted 'tensor'.");
+        }
+        return message;
+    }
+};
+
+paddle.framework.proto.VarType.DenseTensorArrayDesc.prototype.tensor = null;
+paddle.framework.proto.VarType.DenseTensorArrayDesc.prototype.legacy_lod_level = 0;
+
+paddle.framework.proto.VarType.ReaderDesc = class ReaderDesc {
+
+    constructor() {
+        this.dense_tensor = [];
+    }
+
+    static decode(reader, length) {
+        const message = new paddle.framework.proto.VarType.ReaderDesc();
+        const end = length === undefined ? reader.length : reader.position + length;
+        while (reader.position < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    message.dense_tensor.push(paddle.framework.proto.VarType.DenseTensorDesc.decode(reader, reader.uint32()));
+                    break;
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+            }
+        }
+        return message;
+    }
+
+    static decodeText(reader) {
+        const message = new paddle.framework.proto.VarType.ReaderDesc();
+        reader.start();
+        while (!reader.end()) {
+            const tag = reader.tag();
+            switch (tag) {
+                case "dense_tensor":
+                    message.dense_tensor.push(paddle.framework.proto.VarType.DenseTensorDesc.decodeText(reader));
+                    break;
+                default:
+                    reader.field(tag, message);
+                    break;
+            }
+        }
+        return message;
+    }
+};
+
+paddle.framework.proto.VarType.Tuple = class Tuple {
+
+    constructor() {
+        this.element_type = [];
+    }
+
+    static decode(reader, length) {
+        const message = new paddle.framework.proto.VarType.Tuple();
+        const end = length === undefined ? reader.length : reader.position + length;
+        while (reader.position < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    message.element_type = reader.array(message.element_type, () => reader.int32(), tag);
+                    break;
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+            }
+        }
+        return message;
+    }
+
+    static decodeText(reader) {
+        const message = new paddle.framework.proto.VarType.Tuple();
+        reader.start();
+        while (!reader.end()) {
+            const tag = reader.tag();
+            switch (tag) {
+                case "element_type":
+                    reader.array(message.element_type, () => reader.enum(paddle.framework.proto.VarType.Type));
+                    break;
+                default:
+                    reader.field(tag, message);
+                    break;
+            }
+        }
+        return message;
+    }
+};
+
+paddle.framework.proto.VarDesc = class VarDesc {
+
+    constructor() {
+        this.attrs = [];
+    }
+
+    static decode(reader, length) {
+        const message = new paddle.framework.proto.VarDesc();
+        const end = length === undefined ? reader.length : reader.position + length;
+        while (reader.position < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    message.name = reader.string();
+                    break;
+                case 2:
+                    message.type = paddle.framework.proto.VarType.decode(reader, reader.uint32());
+                    break;
+                case 3:
+                    message.persistable = reader.bool();
+                    break;
+                case 4:
+                    message.need_check_feed = reader.bool();
+                    break;
+                case 5:
+                    message.is_parameter = reader.bool();
+                    break;
+                case 6:
+                    message.stop_gradient = reader.bool();
+                    break;
+                case 7:
+                    message.attrs.push(paddle.framework.proto.VarDesc.Attr.decode(reader, reader.uint32()));
+                    break;
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+            }
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, 'name')) {
+            throw new Error("Excepted 'name'.");
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, 'type')) {
+            throw new Error("Excepted 'type'.");
+        }
+        return message;
+    }
+
+    static decodeText(reader) {
+        const message = new paddle.framework.proto.VarDesc();
+        reader.start();
+        while (!reader.end()) {
+            const tag = reader.tag();
+            switch (tag) {
+                case "name":
+                    message.name = reader.string();
+                    break;
+                case "type":
+                    message.type = paddle.framework.proto.VarType.decodeText(reader);
+                    break;
+                case "persistable":
+                    message.persistable = reader.bool();
+                    break;
+                case "need_check_feed":
+                    message.need_check_feed = reader.bool();
+                    break;
+                case "is_parameter":
+                    message.is_parameter = reader.bool();
+                    break;
+                case "stop_gradient":
+                    message.stop_gradient = reader.bool();
+                    break;
+                case "attrs":
+                    message.attrs.push(paddle.framework.proto.VarDesc.Attr.decodeText(reader));
+                    break;
+                default:
+                    reader.field(tag, message);
+                    break;
+            }
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, "name")) {
+            throw new Error("Excepted 'name'.");
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, "type")) {
+            throw new Error("Excepted 'type'.");
+        }
+        return message;
+    }
+};
+
+paddle.framework.proto.VarDesc.prototype.name = "";
+paddle.framework.proto.VarDesc.prototype.type = null;
+paddle.framework.proto.VarDesc.prototype.persistable = false;
+paddle.framework.proto.VarDesc.prototype.need_check_feed = false;
+paddle.framework.proto.VarDesc.prototype.is_parameter = false;
+paddle.framework.proto.VarDesc.prototype.stop_gradient = false;
+
+paddle.framework.proto.VarDesc.Attr = class Attr {
+
+    constructor() {
+        this.ints = [];
+    }
+
+    static decode(reader, length) {
+        const message = new paddle.framework.proto.VarDesc.Attr();
+        const end = length === undefined ? reader.length : reader.position + length;
+        while (reader.position < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    message.name = reader.string();
+                    break;
+                case 2:
+                    message.type = reader.int32();
+                    break;
+                case 3:
+                    message.i = reader.int32();
+                    break;
+                case 4:
+                    message.s = reader.string();
+                    break;
+                case 5:
+                    message.ints = reader.array(message.ints, () => reader.int32(), tag);
+                    break;
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+            }
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, 'name')) {
+            throw new Error("Excepted 'name'.");
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, 'type')) {
+            throw new Error("Excepted 'type'.");
+        }
+        return message;
+    }
+
+    static decodeText(reader) {
+        const message = new paddle.framework.proto.VarDesc.Attr();
+        reader.start();
+        while (!reader.end()) {
+            const tag = reader.tag();
+            switch (tag) {
+                case "name":
+                    message.name = reader.string();
+                    break;
+                case "type":
+                    message.type = reader.enum(paddle.framework.proto.AttrType);
+                    break;
+                case "i":
+                    message.i = reader.int32();
+                    break;
+                case "s":
+                    message.s = reader.string();
+                    break;
+                case "ints":
+                    reader.array(message.ints, () => reader.int32());
+                    break;
+                default:
+                    reader.field(tag, message);
+                    break;
+            }
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, "name")) {
+            throw new Error("Excepted 'name'.");
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, "type")) {
+            throw new Error("Excepted 'type'.");
+        }
+        return message;
+    }
+};
+
+paddle.framework.proto.VarDesc.Attr.prototype.name = "";
+paddle.framework.proto.VarDesc.Attr.prototype.type = 0;
+paddle.framework.proto.VarDesc.Attr.prototype.i = 0;
+paddle.framework.proto.VarDesc.Attr.prototype.s = "";
+
+paddle.framework.proto.BlockDesc = class BlockDesc {
+
+    constructor() {
+        this.vars = [];
+        this.ops = [];
+    }
+
+    static decode(reader, length) {
+        const message = new paddle.framework.proto.BlockDesc();
+        const end = length === undefined ? reader.length : reader.position + length;
+        while (reader.position < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    message.idx = reader.int32();
+                    break;
+                case 2:
+                    message.parent_idx = reader.int32();
+                    break;
+                case 3:
+                    message.vars.push(paddle.framework.proto.VarDesc.decode(reader, reader.uint32()));
+                    break;
+                case 4:
+                    message.ops.push(paddle.framework.proto.OpDesc.decode(reader, reader.uint32()));
+                    break;
+                case 5:
+                    message.forward_block_idx = reader.int32();
+                    break;
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+            }
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, 'idx')) {
+            throw new Error("Excepted 'idx'.");
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, 'parent_idx')) {
+            throw new Error("Excepted 'parent_idx'.");
+        }
+        return message;
+    }
+
+    static decodeText(reader) {
+        const message = new paddle.framework.proto.BlockDesc();
+        reader.start();
+        while (!reader.end()) {
+            const tag = reader.tag();
+            switch (tag) {
+                case "idx":
+                    message.idx = reader.int32();
+                    break;
+                case "parent_idx":
+                    message.parent_idx = reader.int32();
+                    break;
+                case "vars":
+                    message.vars.push(paddle.framework.proto.VarDesc.decodeText(reader));
+                    break;
+                case "ops":
+                    message.ops.push(paddle.framework.proto.OpDesc.decodeText(reader));
+                    break;
+                case "forward_block_idx":
+                    message.forward_block_idx = reader.int32();
+                    break;
+                default:
+                    reader.field(tag, message);
+                    break;
+            }
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, "idx")) {
+            throw new Error("Excepted 'idx'.");
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, "parent_idx")) {
+            throw new Error("Excepted 'parent_idx'.");
+        }
+        return message;
+    }
+};
+
+paddle.framework.proto.BlockDesc.prototype.idx = 0;
+paddle.framework.proto.BlockDesc.prototype.parent_idx = 0;
+paddle.framework.proto.BlockDesc.prototype.forward_block_idx = -1;
+
+paddle.framework.proto.OpVersion = class OpVersion {
+
+    static decode(reader, length) {
+        const message = new paddle.framework.proto.OpVersion();
+        const end = length === undefined ? reader.length : reader.position + length;
+        while (reader.position < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    message.version = reader.int32();
+                    break;
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+            }
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, 'version')) {
+            throw new Error("Excepted 'version'.");
+        }
+        return message;
+    }
+
+    static decodeText(reader) {
+        const message = new paddle.framework.proto.OpVersion();
+        reader.start();
+        while (!reader.end()) {
+            const tag = reader.tag();
+            switch (tag) {
+                case "version":
+                    message.version = reader.int32();
+                    break;
+                default:
+                    reader.field(tag, message);
+                    break;
+            }
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, "version")) {
+            throw new Error("Excepted 'version'.");
+        }
+        return message;
+    }
+};
+
+paddle.framework.proto.OpVersion.prototype.version = 0;
+
+paddle.framework.proto.OpVersionMap = class OpVersionMap {
+
+    constructor() {
+        this.pair = [];
+    }
+
+    static decode(reader, length) {
+        const message = new paddle.framework.proto.OpVersionMap();
+        const end = length === undefined ? reader.length : reader.position + length;
+        while (reader.position < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    message.pair.push(paddle.framework.proto.OpVersionMap.OpVersionPair.decode(reader, reader.uint32()));
+                    break;
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+            }
+        }
+        return message;
+    }
+
+    static decodeText(reader) {
+        const message = new paddle.framework.proto.OpVersionMap();
+        reader.start();
+        while (!reader.end()) {
+            const tag = reader.tag();
+            switch (tag) {
+                case "pair":
+                    message.pair.push(paddle.framework.proto.OpVersionMap.OpVersionPair.decodeText(reader));
+                    break;
+                default:
+                    reader.field(tag, message);
+                    break;
+            }
+        }
+        return message;
+    }
+};
+
+paddle.framework.proto.OpVersionMap.OpVersionPair = class OpVersionPair {
+
+    static decode(reader, length) {
+        const message = new paddle.framework.proto.OpVersionMap.OpVersionPair();
+        const end = length === undefined ? reader.length : reader.position + length;
+        while (reader.position < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    message.op_name = reader.string();
+                    break;
+                case 2:
+                    message.op_version = paddle.framework.proto.OpVersion.decode(reader, reader.uint32());
+                    break;
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+            }
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, 'op_name')) {
+            throw new Error("Excepted 'op_name'.");
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, 'op_version')) {
+            throw new Error("Excepted 'op_version'.");
+        }
+        return message;
+    }
+
+    static decodeText(reader) {
+        const message = new paddle.framework.proto.OpVersionMap.OpVersionPair();
+        reader.start();
+        while (!reader.end()) {
+            const tag = reader.tag();
+            switch (tag) {
+                case "op_name":
+                    message.op_name = reader.string();
+                    break;
+                case "op_version":
+                    message.op_version = paddle.framework.proto.OpVersion.decodeText(reader);
+                    break;
+                default:
+                    reader.field(tag, message);
+                    break;
+            }
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, "op_name")) {
+            throw new Error("Excepted 'op_name'.");
+        }
+        if (!Object.prototype.hasOwnProperty.call(message, "op_version")) {
+            throw new Error("Excepted 'op_version'.");
+        }
+        return message;
+    }
+};
+
+paddle.framework.proto.OpVersionMap.OpVersionPair.prototype.op_name = "";
+paddle.framework.proto.OpVersionMap.OpVersionPair.prototype.op_version = null;
+
+paddle.framework.proto.ProgramDesc = class ProgramDesc {
+
+    constructor() {
+        this.blocks = [];
+    }
+
+    static decode(reader, length) {
+        const message = new paddle.framework.proto.ProgramDesc();
+        const end = length === undefined ? reader.length : reader.position + length;
+        while (reader.position < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    message.blocks.push(paddle.framework.proto.BlockDesc.decode(reader, reader.uint32()));
+                    break;
+                case 4:
+                    message.version = paddle.framework.proto.Version.decode(reader, reader.uint32());
+                    break;
+                case 5:
+                    message.op_version_map = paddle.framework.proto.OpVersionMap.decode(reader, reader.uint32());
+                    break;
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+            }
+        }
+        return message;
+    }
+
+    static decodeText(reader) {
+        const message = new paddle.framework.proto.ProgramDesc();
+        reader.start();
+        while (!reader.end()) {
+            const tag = reader.tag();
+            switch (tag) {
+                case "blocks":
+                    message.blocks.push(paddle.framework.proto.BlockDesc.decodeText(reader));
+                    break;
+                case "version":
+                    message.version = paddle.framework.proto.Version.decodeText(reader);
+                    break;
+                case "op_version_map":
+                    message.op_version_map = paddle.framework.proto.OpVersionMap.decodeText(reader);
+                    break;
+                default:
+                    reader.field(tag, message);
+                    break;
+            }
+        }
+        return message;
+    }
+};
+
+paddle.framework.proto.ProgramDesc.prototype.version = null;
+paddle.framework.proto.ProgramDesc.prototype.op_version_map = null;

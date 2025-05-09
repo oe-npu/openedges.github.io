@@ -1,128 +1,72 @@
 [
   {
-    "name": "Dense",
-    "schema": {
-      "category": "Layer",
-      "attributes": [
-      ]
-    }
-  },
-  {
-    "name": "Output",
-    "schema": {
-      "category": "Layer",
-      "attributes": [
-      ]
-    }
+    "name": "BatchNormalization",
+    "category": "Normalization",
+    "attributes": [
+      { "name": "eps" },
+      { "name": "gamma" },
+      { "name": "decay" }
+    ]
   },
   {
     "name": "Convolution",
-    "schema": {
-      "category": "Layer",
-      "attributes": [
-        { "name": "dilation" },
-        { "name": "kernelSize" },
-        { "name": "padding" }
-      ]
-    }
+    "category": "Layer",
+    "attributes": [
+      { "name": "dilation" },
+      { "name": "kernelSize" },
+      { "name": "padding" }
+    ]
   },
   {
-    "name": "SeparableConvolution2D",
-    "schema": {
-      "category": "Layer",
-      "attributes": [
-      ]
-    }
-  },
-  {
-    "name": "BatchNormalization",
-    "schema": {
-      "category": "Normalization",
-      "attributes": [
-        { "name": "eps" },
-        { "name": "gamma" },
-        { "name": "decay" }
-      ]
-    }
-  },
-  {
-    "name": "Sigmoid",
-    "schema": {
-      "category": "Activation",
-      "attributes": [
-      ]
-    }
-  },
-  {
-    "name": "LReLU",
-    "schema": {
-      "category": "Activation",
-      "attributes": [
-      ]
-    }
-  },
-  {
-    "name": "ReLU",
-    "schema": {
-      "category": "Activation",
-      "attributes": [
-      ]
-    }
-  },
-  {
-    "name": "TanH",
-    "schema": {
-      "category": "Activation",
-      "attributes": [
-      ]
-    }
-  },
-  {
-    "name": "Softmax",
-    "schema": {
-      "category": "Activation",
-      "attributes": [
-      ]
-    }
-  },
-  {
-    "name": "Merge",
-    "schema": {
-      "category": "Tensor",
-      "attributes": [
-      ]
-    }
-  },
-  {
-    "name": "Upsampling2D",
-    "schema": {
-      "category": "Layer",
-      "attributes": [
-      ]
-    }
+    "name": "Dense",
+    "category": "Layer"
   },
   {
     "name": "Dropout",
-    "schema": {
-      "category": "Dropout",
-      "attributes": [
-      ]
-    }
+    "category": "Dropout"
   },
   {
     "name": "GlobalPooling",
-    "schema": {
-      "category": "Pool",
-      "attributes": [
-      ]
-    }
+    "category": "Pool"
+  },
+  {
+    "name": "LReLU",
+    "category": "Activation"
+  },
+  {
+    "name": "Merge",
+    "category": "Tensor"
+  },
+  {
+    "name": "Output",
+    "category": "Layer"
+  },
+  {
+    "name": "ReLU",
+    "category": "Activation"
+  },
+  {
+    "name": "SeparableConvolution2D",
+    "category": "Layer"
+  },
+  {
+    "name": "Sigmoid",
+    "category": "Activation"
+  },
+  {
+    "name": "Softmax",
+    "category": "Activation"
   },
   {
     "name": "Subsampling",
-    "schema": {
-      "category": "Layer",
-      "attributes": [
-      ]
-    }
+    "category": "Layer"
+  },
+  {
+    "name": "TanH",
+    "category": "Activation"
+  },
+  {
+    "name": "Upsampling2D",
+    "category": "Layer"
   }
 ]

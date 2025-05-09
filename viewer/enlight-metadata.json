@@ -82,6 +82,7 @@
         { "name": "padding", "type": "string", "src": ["padWidth", "padHeight"] },
         { "name": "stride", "type": "string", "src": ["strideX", "strideY"] },
         { "name": "dilation", "type": "string", "src": ["dilationX", "dilationY"] },
+        { "name": "groups", "type": "string", "src": "groups"},
         { "name": "dataLayout", "type": "string", "src": "dataLayout", "src_type": "DataLayout" },
         { "name": "qbit", "type": "int", "src": "quantizedBitwidth"}
       ]
@@ -102,6 +103,7 @@
         { "name": "padding", "type": "string", "src": ["padWidth", "padHeight"] },
         { "name": "stride", "type": "string", "src": ["strideX", "strideY"] },
         { "name": "dilation", "type": "string", "src": ["dilationX", "dilationY"] },
+        { "name": "groups", "type": "string", "src": "groups"},
         { "name": "dataLayout", "type": "string", "src": "dataLayout", "src_type": "DataLayout" }
       ]
     }
@@ -121,6 +123,25 @@
         { "name": "padding", "type": "string", "src": ["padWidth", "padHeight"] },
         { "name": "stride", "type": "string", "src": ["strideX", "strideY"] },
         { "name": "dilation", "type": "string", "src": ["dilationX", "dilationY"] },
+        { "name": "groups", "type": "string", "src": "groups"},
+        { "name": "dataLayout", "type": "string", "src": "dataLayout", "src_type": "DataLayout" }
+      ]
+    }
+  },
+  {
+    "name": "DarknetDeConv2dLayer",
+    "schema": {
+      "category": "Layer",
+      "inputs": [
+        { "name": "weight", "src": "weights" },
+        { "name": "bias", "src": "biases" }
+      ],
+      "attributes": [
+        { "name": "in_channels", "type": "int", "src": "inChannels" },
+        { "name": "out_channels", "type": "int", "src": "outChannels" },
+        { "name": "kernel_size", "type": "string", "src": ["kernelWidth", "kernelHeight"] },
+        { "name": "padding", "type": "string", "src": ["padWidth", "padHeight"] },
+        { "name": "stride", "type": "string", "src": ["strideX", "strideY"] },
         { "name": "dataLayout", "type": "string", "src": "dataLayout", "src_type": "DataLayout" }
       ]
     }
@@ -203,6 +224,12 @@
     }
   },
   {
+    "name": "MishAttentionLayer",
+    "schema": {
+      "category": "Activation"
+    }
+  },
+  {
     "name": "ConstantLayer",
     "schema": {
       "category": "Tensor",
@@ -235,6 +262,16 @@
       "category": "Layer",
       "attributes": [
         { "name": "Const", "type": "uint", "src": "val" }
+      ]
+    }
+  },
+  {
+    "name": "AddConstLayer",
+    "schema": {
+      "category": "Layer",
+      "attributes": [
+        { "name": "Const", "type": "uint", "src": "val" },
+        { "name": "IsSub", "type": "bool", "src": "isSub" }
       ]
     }
   },
@@ -311,10 +348,10 @@
     "schema": {
       "category": "Tensor",
       "attributes": [
-        { "name": "start", "type": "uint", "src": "start" },
-        { "name": "end", "type": "uint", "src": "end" },
-        { "name": "step", "type": "uint", "src": "step" },
-        { "name": "axis", "type": "uint", "src": "axis" }
+        { "name": "start", "type": "uint", "src": "starts" },
+        { "name": "end", "type": "uint", "src": "ends" },
+        { "name": "step", "type": "uint", "src": "steps" },
+        { "name": "axis", "type": "uint", "src": "axes" }
       ]
     }
   },
@@ -420,6 +457,38 @@
         { "name": "constScale", "type": "int", "src": "constScale" },
         { "name": "trunc", "type": "int", "src": "trunc" }
       ]
+    }
+  },
+  {
+    "name": "DelimiterLayer",
+    "schema": {
+      "category": "Layer",
+      "attributes": [
+        { "name": "group", "type": "string", "src": "groupType", "src_type": "GroupLayer" },
+        { "name": "tail", "type": "bool", "src": "tail" },
+        { "name": "aux", "type": "bool", "src": "aux" },
+        { "name": "row_partition", "src": "rowPartitionData"},
+        { "name": "och_partition", "src": "channelPartitionData"}
+      ]
+    }
+  },
+  {
+    "name": "PowLayer",
+    "schema": {
+      "category": "Layer",
+      "attributes": [
+        { "name": "exponent", "type": "float", "src": "exponent" }        
+      ]    
+    }
+  },
+  {
+    "name": "SplitLayer",
+    "schema": {
+      "category": "Tensor",
+      "attributes": [
+        { "name": "axis", "type": "int", "src": "axis" },
+        { "name": "split_size", "type": "string", "src": "splitSize" }
+      ]    
     }
   }
 ]
